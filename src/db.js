@@ -1,7 +1,7 @@
 var MongoClient = require('mongodb').MongoClient
 var ObjectId = require('mongodb').ObjectID
 
-const DEFAULT_URL = 'mongodb://localhost:27017/OpenCompareV2'
+const DEFAULT_URL = 'mongodb://localhost:27017/OpenCompare2'
 
 class DB {
   constructor (url = DEFAULT_URL, autoConnect = true) {
