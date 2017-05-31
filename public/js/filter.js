@@ -63,7 +63,7 @@ class Filter {
         if (!isNaN(val)) self.slider.upper = val
       })
       this.upperInput.appendTo(this.content)
-    } else {
+    } else if (this.type === 'string' || this.type === 'url' || this.type === 'image') {
       this.input = new TextField('Search (accept regex)')
       this.input.addEventListener('keyup', function () {
         if (self.input.value !== self.searchString) {
@@ -72,6 +72,8 @@ class Filter {
         }
       })
       this.input.appendTo(this.content)
+    } else {
+      this.conntent.innerHTML += '<br> Sorry can\'t filter on this type for now, it will be coming soon'
     }
   }
 

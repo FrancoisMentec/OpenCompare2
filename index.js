@@ -75,5 +75,5 @@ app.get('*', function (req, res) {
 
 // start server
 http.listen(PORT, function () {
-    console.log('Started OpenCompareV2 on port ' + PORT)
+    console.log('Started OpenCompare2 on port ' + PORT)
 })
