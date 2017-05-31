@@ -28,19 +28,20 @@ class Filter {
     this.button.innerHTML += ' ' + this.feature.name
     this.content = document.createElement('div')
     this.content.className = 'filterContent'
+    this.content.innerHTML = 'Type : ' + this.type
     this.div.appendChild(this.content)
 
     this._searchString = ''
     this.matchAll = true
 
-    this.input = document.createElement('input')
+    this.input = new TextField('Search (accept regex)')
     this.input.addEventListener('keyup', function () {
       if (self.input.value !== self.searchString) {
         self.searchString = self.input.value
         self.filterChanged()
       }
     })
-    this.content.appendChild(this.input)
+    this.input.appendTo(this.content)
   }
 
   get type () {
