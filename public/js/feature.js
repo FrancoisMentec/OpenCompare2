@@ -14,15 +14,16 @@ class Feature {
     this.types = {}
     this.type = null
     this.occurrences = {}
+    this.min = null
+    this.max = null
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
       var cell = this.pcm.products[p].cellsByFeatureId[this.id]
-      var type = cell.type
-      if (typeof this.types[type] === 'undefined') this.types[type] = 1
-      else this.types[type]++
+      if (typeof this.types[cell.type] === 'undefined') this.types[cell.type] = 1
+      else this.types[cell.type]++
 
-      if (!isFromDB && (this.type == null || this.types[type] > this.types[this.type])) this.type = type
+      if (!isFromDB && (this.type == null || this.types[cell.type] > this.types[this.type])) this.type = cell.type
 
-      if (type === 'multiple') {
+      if (cell.type === 'multiple') {
         for (var i = 0, li = cell.value.length; i < li; i++) {
           if (typeof this.occurrences[cell.value[i]] === 'undefined') this.occurrences[cell.value[i]] = 1
           else this.occurrences[cell.value[i]]++
@@ -30,6 +31,11 @@ class Feature {
       } else {
         if (typeof this.occurrences[cell.value] === 'undefined') this.occurrences[cell.value] = 1
         else this.occurrences[cell.value]++
+
+        if (cell.type === 'number') {
+          if (this.min == null || cell.value < this.min) this.min = cell.value
+          if (this.max == null || cell.value > this.max) this.max = cell.value
+        }
       }
     }
 

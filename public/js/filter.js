@@ -31,16 +31,39 @@ class Filter {
     this.content.innerHTML = 'Type : ' + this.type
     this.div.appendChild(this.content)
 
+    this._searchString = ''
+    this.matchAll = true
+
     if (this.type === 'number') {
-      this.slider = new SliderRange(0, 100)
+      this.lower = this.feature.min
+      this.upper = this.feature.max
+
+      this.lowerInput = new TextField('Min')
+      this.lowerInput.value = this.lower
+      this.lowerInput.addEventListener('change', function () {
+        var val = parseFloat(self.lowerInput.value)
+        if (!isNaN(val)) self.slider.lower = val
+      })
+      this.lowerInput.appendTo(this.content)
+
+      this.slider = new SliderRange(this.lower, this.upper)
       this.slider.appendTo(this.content)
       this.slider.rangeChangeListener = function (lower, upper) {
-        //console.log('[' + lower + ', ' + upper + ']')
+        self.lower = lower
+        self.upper = upper
+        self.lowerInput.value = Math.round(self.lower * 100) / 100
+        self.upperInput.value = Math.round(self.upper * 100) / 100
+        self.filterChanged()
       }
-    } else {
-      this._searchString = ''
-      this.matchAll = true
 
+      this.upperInput = new TextField('Max')
+      this.upperInput.value = this.upper
+      this.upperInput.addEventListener('change', function () {
+        var val = parseFloat(self.upperInput.value)
+        if (!isNaN(val)) self.slider.upper = val
+      })
+      this.upperInput.appendTo(this.content)
+    } else {
       this.input = new TextField('Search (accept regex)')
       this.input.addEventListener('keyup', function () {
         if (self.input.value !== self.searchString) {
@@ -66,13 +89,18 @@ class Filter {
   }
 
   match (product) {
-    if (this.matchAll) return true
-    return this.searchRegex.test(product.cellsByFeatureId[this.feature.id].value)
+    var cell = product.cellsByFeatureId[this.feature.id]
+
+    return this.matchAll ||
+      (cell.type === 'string' && this.searchRegex.test(cell.value)) ||
+      (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper)
   }
 
   filterChanged () {
-    this.matchAll = false
-    if (this.searchString.length === 0) this.matchAll = true
+    this.matchAll =
+      (this.type === 'string' && this.searchString.length === 0) ||
+      (this.type === 'number' && this.lower === this.feature.min && this.upper === this.feature.max)
+
     this.editor.filterChanged(this)
   }
 }

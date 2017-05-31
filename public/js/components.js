@@ -51,6 +51,7 @@ class TextField {
 
   set value (value) {
     this.input.value = value
+    this.checkClassName()
   }
 
   checkClassName () {

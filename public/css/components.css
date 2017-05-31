@@ -74,7 +74,7 @@ button:active, .button:active {
 	bottom: 8px;
 	width: 100%;
 	height: 1px;
-	background-color: #9E9E9E;
+	background-color: #9E9E9E; /* gray 500 */
 }
 
 .textField::after{
@@ -151,13 +151,47 @@ button:active, .button:active {
 }
 
 .sliderThumb {
+  transition: width 0.2s, height 0.2s;
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  top: 6px;
+  top: 50%;
+  transform: translate(-50%,-50%);
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background-color: #009688; /* Teal 500 */
   cursor: pointer;
+}
+
+.sliderThumb:after {
+  transition: 0.2s;
+  content: "";
+  position: relative;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background-color: #009688; /* Teal 500 */
+  opacity: 0.2;
+}
+
+.sliderThumb:hover:after {
+  top: -6px;
+  left: -6px;
+  width: 24px;
+  height: 24px;
+}
+
+.sliderThumb:active:after {
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+
+.sliderThumb:active {
+  width: 16px;
+  height: 16px;
 }
