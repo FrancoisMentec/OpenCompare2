@@ -92,13 +92,13 @@ class Filter {
     var cell = product.cellsByFeatureId[this.feature.id]
 
     return this.matchAll ||
-      (cell.type === 'string' && this.searchRegex.test(cell.value)) ||
+      ((cell.type === 'string' || cell.type === 'url' || cell.type === 'image') && this.searchRegex.test(cell.value)) ||
       (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper)
   }
 
   filterChanged () {
     this.matchAll =
-      (this.type === 'string' && this.searchString.length === 0) ||
+      ((cell.type === 'string' || cell.type === 'url' || cell.type === 'image') && this.searchString.length === 0) ||
       (this.type === 'number' && this.lower === this.feature.min && this.upper === this.feature.max)
 
     this.editor.filterChanged(this)

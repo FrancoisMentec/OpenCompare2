@@ -51,10 +51,10 @@ class Cell {
     } else if (type === 'object' || type === 'function') {
       console.error('a value can\'t be of type object or function')
     } else if (type === 'string') {
-      if (value === 'true') {
+      if (/^true$/i.test(value)) {
         value = true
         type = 'boolean'
-      } else if (value == 'false') {
+      } else if (/^false$/i.test(value)) {
         value = false
         type = 'boolean'
       } else if (/^(\d+((,|\.)\d+)?|\d{1,3}(\ \d{3})*((,|\.)(\d{3}\ )*\d{1,3})?)$/.test(value)) { // match integer and real with , or . as decimal separator and space every 3 number
