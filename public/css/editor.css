@@ -1,0 +1,142 @@
+#editor {
+  width: 100%;
+  height: 100%;
+}
+
+#editorHeader {
+  width: 100%;
+  height: 60px;
+}
+
+#editorHeader > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#editorLogo {
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  text-align: center;
+  color: white;
+  font-family: Roboto-Black;
+  font-size: 32px;
+  text-decoration: none;
+  background-color: #009688; /* Teal 500 */
+}
+
+#editorHeaderContent {
+  width: calc(100% - 60px);
+  height: 100%;
+  padding: 0 5px 0 5px;
+}
+
+#pcmName {
+  width: 100%;
+  height: 43px;
+  line-height: 43px;
+  font-family: Roboto-Black;
+  font-size: 32px;
+}
+
+.pcmAttributeTitle {
+  display: inline;
+  font-family: Roboto-Bold;
+}
+
+.pcmAttribute {
+  display: inline;
+  color: #9E9E9E; /* Gray 500 */
+}
+
+#editorBody {
+  width: 100%;
+  height: calc(100% - 60px);
+}
+
+#editorTopBar {
+  width: 100%;
+  height: 37px;
+  background-color: #EEEEEE;
+  border-top: 1px solid #BDBDBD;
+  border-bottom: 1px solid #BDBDBD;
+}
+
+#editorContent {
+  width: 100%;
+  height: calc(100% - 37px);
+}
+
+#editorContent > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+/* configurator */
+
+#configurator {
+  width: 200px;
+  height: 100%;
+  background-color: #EEEEEE;
+  border-right: 1px solid #BDBDBD;
+}
+
+#configuratorTitle {
+  width: 100%;
+  height: 56px;
+  line-height: 56px;
+  font-family: Roboto-Medium;
+  text-align: center;
+  border-bottom: 1px solid #BDBDBD;
+}
+
+#configuratorContent {
+  width: 100%;
+  height: calc(100% - 56px);
+  overflow: auto;
+}
+
+.filter {
+  width: 100%;
+  height: 48px;
+  border-bottom: 1px solid #BDBDBD;
+  overflow: hidden;
+}
+
+.filterButton {
+  width: 100%;
+  height: 48px;
+  line-height: 48px;
+  padding: 0 5px 0 5px;
+  cursor: pointer;
+}
+
+.filterArrow {
+  transition: 0.2s;
+  display: inline-block;
+  width: 0;
+  height: 0;
+  vertical-align: middle;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 8px solid black;
+}
+
+.filter.extended .filterArrow {
+  transform: rotate(90deg);
+}
+
+.filterContent {
+  padding: 0 5px 16px 5px;
+}
+
+#editorViews {
+  width: calc(100% - 200px);
+  height: 100%;
+}
+
+.editorView {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}

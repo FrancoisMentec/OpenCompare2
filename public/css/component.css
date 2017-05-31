@@ -1,0 +1,57 @@
+/* special */
+
+.scrolled {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.24);
+}
+
+.scrolledRight {
+  box-shadow: 2px 10px 10px rgba(0,0,0,0.24);
+}
+
+/* Link */
+
+a {
+  color: #009688; /* Teal 500 */
+}
+
+a:visited {
+  color: #00796B; /* Teal 700 */
+}
+
+/* Input */
+
+input {
+  outline: none;
+}
+
+/* Button */
+
+button, .button {
+  transition: 0.4s;
+  min-width: 64px;
+  height: 36px;
+  line-height: 36px;
+  padding: 0 16px 0 16px;
+  border: none;
+  border-radius: 2px;
+  color: white;
+  font-family: Roboto-Bold;
+  font-size: 14px;
+  background-color: #009688; /* Teal 500 */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.24);
+  outline: none;
+  cursor: pointer;
+}
+
+button > *, .button > * {
+  vertical-align: middle;
+}
+
+button:hover, .button:hover {
+  background-color: #4DB6AC; /* Teal 300 */
+}
+
+button:active, .button:active {
+  transition: 0;
+  background-color: #00796B; /* Teal 700 */
+}

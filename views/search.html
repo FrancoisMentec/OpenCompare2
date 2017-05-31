@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+	<head data-include="header"></head>
+	<body>
+    <div id="searchBar">
+      <a id="openCompareLogo" href="/">OpenCompare 2</a>
+      <input id="searchInput" type="text" name="search" placeholder="Search for any data" onkeypress="searchKeyPress(event)" value="!{root.search}">
+      <button id="searchButton" class="material-icons" onclick="search()">search</button>
+    </div><!--
+
+		--><div id="searchResults">
+			<div data-if="root.pcms.length === 0">
+				Sorry, it looks like we don't have any data about !{root.search}, if you find something about it try to import it, that's help a lot.
+			</div>
+			<div data-if="root.pcms.length > 0">
+				<div id="resultsNumber" class="caption">!{root.pcms.length} results</div>
+				<div data-for="pcm, key in root.pcms">
+					<div class="searchResult">
+						<a href="/pcm/!{pcm._id}" target="_blank">!{pcm.name}</a>
+						<div class="searchDescription" data-if="pcm.description != null">
+							!{pcm.description}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

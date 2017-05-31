@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+	<head data-include="header"></head>
+	<body>
+    <div id="editor">
+      <div id="editorHeader">
+        <a id="editorLogo" href="/">
+          Oc
+        </a><!--
+        --><div id="editorHeaderContent">
+          <div id="pcmName">?</div>
+          <div class="pcmAttributeTitle">Source :</div> <div id="pcmSource" class="pcmAttribute">?</div>
+          <div class="pcmAttributeTitle">Author :</div> <div id="pcmAuthor" class="pcmAttribute">?</div>
+          <div class="pcmAttributeTitle">License :</div> <div id="pcmLicense" class="pcmAttribute">?</div>
+        </div>
+      </div><!--
+      --><div id="editorBody">
+        <div id="editorTopBar">
+          
+        </div><!--
+        --><div id="editorContent">
+          <div id="configurator">
+						<div id="configuratorTitle">
+							Configurator
+						</div><!--
+						--><div id="configuratorContent">
+
+						</div>
+          </div><!--
+          --><div id="editorViews">
+            <div id="pcmView" class="editorView">
+              <div id="pcmFeatures">
+
+							</div><!--
+							--><div id="pcmProducts">
+
+							</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Javascript -->
+    <script type="text/javascript" src="/js/cell.js"></script>
+    <script type="text/javascript" src="/js/product.js"></script>
+    <script type="text/javascript" src="/js/feature.js"></script>
+    <script type="text/javascript" src="/js/pcm.js"></script>
+		<script type="text/javascript" src="/js/filter.js"></script>
+    <script type="text/javascript" src="/js/editor.js"></script>
+    <script>
+      var editor = new Editor('!{root.id}')
+    </script>
+	</body>
+</html>
