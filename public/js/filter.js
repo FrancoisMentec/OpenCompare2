@@ -73,7 +73,7 @@ class Filter {
       })
       this.input.appendTo(this.content)
     } else {
-      this.conntent.innerHTML += '<br> Sorry can\'t filter on this type for now, it will be coming soon'
+      this.content.innerHTML += '<br> Sorry can\'t filter on this type for now, it will be coming soon'
     }
   }
 
