@@ -12,10 +12,24 @@ class Editor {
     this.sortId = null
     this.sortOrder = null // INCREASE or DECREASE
 
-    this.pcmName = $('#pcmName')
-    this.pcmSource = $('#pcmSource')
-    this.pcmAuthor = $('#pcmAuthor')
-    this.pcmLicense = $('#pcmLicense')
+    this.pcmName = document.getElementById('pcmName')
+    this.pcmSource = document.getElementById('pcmSource')
+    this.pcmAuthor = document.getElementById('pcmAuthor')
+    this.pcmLicense = document.getElementById('pcmLicense')
+
+    this.showConfiguratorButton = document.getElementById('showConfiguratorButton')
+    this.showConfiguratorButton.addEventListener('click', function () {
+      self.div.className = self.div.className === 'configuratorHidden'
+        ? ''
+        : 'configuratorHidden'
+
+      self.showConfiguratorButton.innerHTML = self.div.className === 'configuratorHidden'
+        ? 'Show the configurator'
+        : 'Hide the configurator'
+    })
+
+    this.div = document.getElementById('editor')
+    this.editorContent = document.getElementById('editorContent')
 
     this.pcmView = document.getElementById('pcmView')
     this.pcmView.addEventListener('scroll', function (event) {
@@ -48,7 +62,16 @@ class Editor {
   loadPCM () {
     var self = this
 
-    $.get(API + this.pcmId, function (data) {
+    //console.time('get pcm')
+
+    var r = new XMLHttpRequest()
+    r.open('GET', API + this.pcmId, true)
+    r.onreadystatechange = function () {
+      if (r.readyState != 4 || r.status != 200) return
+
+      var data = JSON.parse(r.responseText)
+      //console.timeEnd('get pcm')
+
       if (data == null) {
         alert('pcm ' + self.pcmId + ' doesn\'t exists')
       } else if (typeof data.error !== 'undefined') {
@@ -57,24 +80,24 @@ class Editor {
         self.pcm = new PCM(data)
         self.pcmLoaded()
       }
-    })
+    }
+    r.send()
   }
 
   pcmLoaded () {
     var self = this
 
     // display pcm attributes
-    this.pcmName.text(this.pcm.name || 'No name')
+    this.pcmName.innerHTML = this.pcm.name || 'No name'
 
-    var source = this.pcm.source == null
+    this.pcmSource.innerHTML = this.pcm.source == null
       ? 'unknown'
       : isUrl(this.pcm.source)
         ? '<a href="' + this.pcm.source + '" target="_blank">' + this.pcm.source + '</a>'
         : this.pcm.source
-    this.pcmSource.html(source)
 
-    this.pcmAuthor.text(this.pcm.author || 'unknown')
-    this.pcmLicense.text(this.pcm.license || 'unknown')
+    this.pcmAuthor.innerHTML = this.pcm.author || 'unknown'
+    this.pcmLicense.innerHTML = this.pcm.license || 'unknown'
 
     // sort pcm
     this.sort(this.pcm.primaryFeatureId)
@@ -112,7 +135,9 @@ class Editor {
 
   sort (featureId) {
     if (this.sortId != null) {
-      $(this.pcm.featuresById[this.sortId].div).removeClass('increase decrease')
+      this.pcm.featuresById[this.sortId].div.className = this.pcm.featuresById[this.sortId].type === 'number'
+        ? 'pcmFeature alignRight'
+        : 'pcmFeature'
       if (featureId === this.sortId) {
         this.sortOrder *= -1
       } else {
@@ -124,9 +149,9 @@ class Editor {
     this.sortId = featureId
 
     if (this.sortOrder === INCREASE) {
-      $(this.pcm.featuresById[this.sortId].div).addClass('increase')
+      this.pcm.featuresById[this.sortId].div.className += ' increase'
     } else {
-      $(this.pcm.featuresById[this.sortId].div).addClass('decrease')
+      this.pcm.featuresById[this.sortId].div.className +=' decrease'
     }
 
     this.pcm.sort(this.pcm.featuresById[this.sortId], this.sortOrder)
