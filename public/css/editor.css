@@ -107,7 +107,7 @@
   width: 100%;
   height: 48px;
   line-height: 48px;
-  padding: 0 5px 0 5px;
+  padding: 0 8px 0 8px;
   cursor: pointer;
 }
 
@@ -127,7 +127,7 @@
 }
 
 .filterContent {
-  padding: 0 5px 16px 5px;
+  padding: 0 8px 16px 8px;
 }
 
 #editorViews {

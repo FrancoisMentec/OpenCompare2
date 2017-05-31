@@ -1,4 +1,5 @@
 /* text field */
+
 class TextField {
   constructor (label = null) {
     var self = this
@@ -65,5 +66,107 @@ class TextField {
 
   addEventListener (eventName, listener) {
     this.input.addEventListener(eventName, listener)
+  }
+}
+
+/* slider range */
+class SliderRange {
+  constructor (min, max) {
+    var self = this
+
+    this.min = min
+    this.max = max
+    this.rangeChangeListener = null
+    this.dragLower = false
+    this.dragUpper = false
+
+    this.div = document.createElement('div')
+    this.div.className = 'slider'
+    this.bar = document.createElement('div')
+    this.bar.className = 'sliderBar'
+    this.div.appendChild(this.bar)
+    this.fullBar = document.createElement('div')
+    this.fullBar.className = 'sliderFullBar'
+    this.div.appendChild(this.fullBar)
+    this.lowerThumb = document.createElement('div')
+    this.lowerThumb.className = 'sliderThumb'
+    this.lowerThumb.addEventListener('mousedown', function (e) {
+      e.stopPropagation()
+      e.preventDefault()
+      self.dragLower = true
+    })
+    this.div.appendChild(this.lowerThumb)
+    this.upperThumb = document.createElement('div')
+    this.upperThumb.className = 'sliderThumb'
+    this.upperThumb.addEventListener('mousedown', function (e) {
+      e.stopPropagation()
+      e.preventDefault()
+      self.dragUpper = true
+    })
+    this.div.appendChild(this.upperThumb)
+    document.addEventListener('mouseup', function (e) {
+      if (self.dragLower || self.dragUpper) {
+        e.stopPropagation()
+        self.dragLower = self.dragUpper = false
+      }
+    })
+    document.addEventListener('mousemove', function (e) {
+      if (self.dragLower) {
+        e.stopPropagation()
+        self.lower = ((e.pageX - self.div.getBoundingClientRect().left) / self.div.offsetWidth) * (self.max - self.min)
+      }
+      if (self.dragUpper) {
+        e.stopPropagation()
+        self.upper = ((e.pageX - self.div.getBoundingClientRect().left) / self.div.offsetWidth) * (self.max - self.min)
+      }
+    })
+    document.addEventListener('mouseleave', function (e) {
+      self.dragLower = self.dragUpper = false
+    })
+
+    this._upper = max
+    this.lower = min
+    this.upper = max
+  }
+
+  get lower () {
+    return this._lower
+  }
+
+  set lower (value) {
+    if (value < this.min) value = this.min
+    if (value > this.upper) value = this.upper
+    this._lower = value
+    this.lowerThumb.style.left = (this.lower / (this.max - this.min)) * 100 + '%'
+    this.computeFullBar()
+    this.triggerRangeChange()
+  }
+
+  get upper () {
+    return this._upper
+  }
+
+  set upper (value) {
+    if (value < this.lower) value = this.lower
+    if (value > this.max) value = this.max
+    this._upper = value
+    this.upperThumb.style.left = (this.upper / (this.max - this.min)) * 100 + '%'
+    this.computeFullBar()
+    this.triggerRangeChange()
+  }
+
+  computeFullBar () {
+    var min = (this.lower / (this.max - this.min)) * 100
+    var max = (this.upper / (this.max - this.min)) * 100
+    this.fullBar.style.left = min + '%'
+    this.fullBar.style.width = max - min + '%'
+  }
+
+  triggerRangeChange () {
+    if (this.rangeChangeListener) this.rangeChangeListener(this.lower, this.upper)
+  }
+
+  appendTo (element) {
+    element.appendChild(this.div)
   }
 }

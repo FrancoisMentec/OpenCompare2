@@ -123,3 +123,41 @@ button:active, .button:active {
 	font-size: 0.8em;
 	color: #009688; /* Teal 500 */
 }
+
+/* slider */
+
+.slider {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  user-select: none;
+}
+
+.slider * {
+  user-select: none;
+}
+
+.sliderBar, .sliderFullBar {
+  position: absolute;
+  left: 0;
+  top: 11px;
+  width: 100%;
+  height: 2px;
+  background-color: #BDBDBD; /* gray 400 */
+}
+
+.sliderFullBar {
+  background-color: #009688; /* Teal 500 */
+}
+
+.sliderThumb {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #009688; /* Teal 500 */
+  cursor: pointer;
+}

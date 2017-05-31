@@ -31,17 +31,25 @@ class Filter {
     this.content.innerHTML = 'Type : ' + this.type
     this.div.appendChild(this.content)
 
-    this._searchString = ''
-    this.matchAll = true
-
-    this.input = new TextField('Search (accept regex)')
-    this.input.addEventListener('keyup', function () {
-      if (self.input.value !== self.searchString) {
-        self.searchString = self.input.value
-        self.filterChanged()
+    if (this.type === 'number') {
+      this.slider = new SliderRange(0, 100)
+      this.slider.appendTo(this.content)
+      this.slider.rangeChangeListener = function (lower, upper) {
+        //console.log('[' + lower + ', ' + upper + ']')
       }
-    })
-    this.input.appendTo(this.content)
+    } else {
+      this._searchString = ''
+      this.matchAll = true
+
+      this.input = new TextField('Search (accept regex)')
+      this.input.addEventListener('keyup', function () {
+        if (self.input.value !== self.searchString) {
+          self.searchString = self.input.value
+          self.filterChanged()
+        }
+      })
+      this.input.appendTo(this.content)
+    }
   }
 
   get type () {
