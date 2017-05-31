@@ -1,10 +1,10 @@
-#OpenCompare 2
+# OpenCompare 2
 
 [OpenCompare](https://github.com/OpenCompare/OpenCompare) from scratch in full js : mongoDB for the database, Node.js for the server and [VanillaJS](http://vanilla-js.com/) client-side for insane performances.
 
 This project just started few days ago so lot of functionalities are coming soon.
 
-##Installation
+## Installation
 - First you need mongoDB :
   - [Install mongoDB on linux](https://docs.mongodb.com/manual/administration/install-on-linux/)
   - [Install mongoDB on OS X](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/)
@@ -16,7 +16,7 @@ This project just started few days ago so lot of functionalities are coming soon
 
 Good Job can now open OpenCompare 2 in your browser at the adress [localhost:9009](localhost:9009)
 
-##Import data
+## Import data
 
-###From [opencompare.org](https://opencompare.org/)
+### From [opencompare.org](https://opencompare.org/)
 Open a pcm and copy the link (ex: [https://opencompare.org/pcm/5757b9be975a3c01a5e5b477](https://opencompare.org/pcm/5757b9be975a3c01a5e5b477)) inside the search field on the homepage and click on import. You don't need to copy the full link, any string that contains the id of the pcm (ex: 5757b9be975a3c01a5e5b477) will work.
