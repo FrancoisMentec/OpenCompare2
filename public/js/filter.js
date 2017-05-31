@@ -100,7 +100,7 @@ class Filter {
 
   filterChanged () {
     this.matchAll =
-      ((cell.type === 'string' || cell.type === 'url' || cell.type === 'image') && this.searchString.length === 0) ||
+      ((this.type === 'string' || this.type === 'url' || this.type === 'image') && this.searchString.length === 0) ||
       (this.type === 'number' && this.lower === this.feature.min && this.upper === this.feature.max)
 
     this.editor.filterChanged(this)
