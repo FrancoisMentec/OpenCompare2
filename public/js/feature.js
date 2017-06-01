@@ -53,6 +53,7 @@ class Feature {
     })
 
     if (browser) { // create div if in browser
+      this.fixed = false
       this.div = document.createElement('div')
       this.div.className = 'pcmFeature'
       this.div.innerHTML = this.name

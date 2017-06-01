@@ -12,7 +12,7 @@
   height: 56px;
   white-space: nowrap;
   background-color: white;
-  z-index: 1;
+  z-index: 3;
   overflow: hidden;
 }
 
@@ -25,10 +25,12 @@
   position: absolute;
   left: 0;
   background-color: white;
+  border-right: 1px solid #BDBDBD;
+  z-index: 2;
 }
 
-#fixedFeaturesName.scrolledRight , #fixedFeaturesColumn.scrolledRight  {
-  border-right: 1px solid #BDBDBD;
+#fixedFeaturesName:empty , #fixedFeaturesColumn:empty {
+  border: none;
 }
 
 #fixedFeaturesName {

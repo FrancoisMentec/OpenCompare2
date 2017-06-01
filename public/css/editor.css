@@ -55,6 +55,8 @@
 }
 
 #editorTopBar {
+  position: relative;
+  z-index: 3;
   width: 100%;
   height: 37px;
   line-height: 35px;
@@ -132,6 +134,8 @@
 /* configurator */
 
 #configurator {
+  position: relative;
+  z-index: 2;
   transition: 0.2s;
   width: 200px;
   height: 100%;

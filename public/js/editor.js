@@ -41,9 +41,12 @@ class Editor {
         : ''
       var left = self.pcmView.scrollLeft
       self.fixedFeaturesName.style.left = self.fixedFeaturesColumn.style.left = left + 'px'
-      self.fixedFeaturesName.className = self.fixedFeaturesColumn.className = left > 0
+      self.configurator.className = self.fixedFeaturesName.className = self.fixedFeaturesColumn.className = left > 0
         ? 'scrolledRight'
         : ''
+      /*if (self.fixedFeaturesName.innerHTML === '') self.configurator.className = left > 0
+        ? 'scrolledRight'
+        : ''*/
     })
     this.configurator = document.getElementById('configurator')
     this.configuratorTitle = document.getElementById('configuratorTitle')
@@ -119,11 +122,11 @@ class Editor {
     }
 
     // add features, products and filter to the DOM
+    this.pcm.primaryFeature.fixed = true
     this.fixedFeaturesName.appendChild(this.pcm.primaryFeature.div)
     this.fixedFeaturesColumn.appendChild(this.pcm.primaryFeature.column)
     this.pcm.primaryFeature.computeWidth()
-    this.pcmFeatures.style.paddingLeft = this.fixedFeaturesName.offsetWidth + 'px'
-    this.pcmProducts.style.paddingLeft = this.fixedFeaturesColumn.offsetWidth + 'px'
+    this.computeFixedWidth()
     this.configuratorContent.appendChild(this.filtersByFeatureId[this.pcm.primaryFeatureId].div)
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
       (function () {
@@ -136,19 +139,72 @@ class Editor {
         }
 
         // bind click event to sort products
-        feature.div.addEventListener('click', function () {
-          self.sort(feature.id)
+        feature.div.addEventListener('click', function (e) {
+          if (e.button === 0) {
+            self.sort(feature.id)
+          }
+        })
+        feature.div.addEventListener('contextmenu', function (e) {
+          e.stopPropagation()
+          e.preventDefault()
+          if (feature.fixed) self.unfixFeature(feature)
+          else self.fixFeature(feature)
         })
       }())
     }
   }
 
   fixFeature (feature) {
-    // TODO:
+    feature.fixed = true
+    this.pcmFeatures.removeChild(feature.div)
+    this.pcmProducts.removeChild(feature.column)
+    if (feature.id === this.pcm.primaryFeatureId) {
+      this.fixedFeaturesName.insertBefore(feature.div, this.fixedFeaturesName.firstChild)
+      this.fixedFeaturesColumn.insertBefore(feature.column, this.fixedFeaturesColumn.firstChild)
+    } else {
+      var nextName = null
+      var nextColumn = null
+      var found = false
+      for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
+        if (found && this.pcm.features[f].fixed && this.pcm.features[f].id !== this.pcm.primaryFeatureId) {
+          nextName = this.pcm.features[f].div
+          nextColumn = this.pcm.features[f].column
+          break
+        } else if (!found && this.pcm.features[f].id === feature.id) found = true
+      }
+      this.fixedFeaturesName.insertBefore(feature.div, nextName)
+      this.fixedFeaturesColumn.insertBefore(feature.column, nextColumn)
+    }
+    this.computeFixedWidth()
   }
 
   unfixFeature (feature) {
-    // TODO:
+    feature.fixed = false
+    this.fixedFeaturesName.removeChild(feature.div)
+    this.fixedFeaturesColumn.removeChild(feature.column)
+    if (feature.id === this.pcm.primaryFeatureId) {
+      this.pcmFeatures.insertBefore(feature.div, this.pcmFeatures.firstChild)
+      this.pcmProducts.insertBefore(feature.column, this.pcmProducts.firstChild)
+    } else {
+      var nextName = null
+      var nextColumn = null
+      var found = false
+      for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
+        if (found && !this.pcm.features[f].fixed && this.pcm.features[f].id !== this.pcm.primaryFeatureId) {
+          nextName = this.pcm.features[f].div
+          nextColumn = this.pcm.features[f].column
+          break
+        } else if (!found && this.pcm.features[f].id === feature.id) found = true
+      }
+      this.pcmFeatures.insertBefore(feature.div, nextName)
+      this.pcmProducts.insertBefore(feature.column, nextColumn)
+    }
+    this.computeFixedWidth()
+  }
+
+  computeFixedWidth () {
+    this.pcmFeatures.style.paddingLeft = this.fixedFeaturesName.offsetWidth + 'px'
+    this.pcmProducts.style.paddingLeft = this.fixedFeaturesColumn.offsetWidth + 'px'
   }
 
   sort (featureId) {
