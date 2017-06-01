@@ -80,6 +80,19 @@ class Filter {
         self.filterChanged()
       }
       this.falseCheckbox.appendTo(this.content)
+    } else if (this.type === 'multiple') { // Multiple
+      this.hasCheckboxes = true
+
+      for (var v = 0, lv = this.feature.values.length; v < lv; v++) {
+        var value = this.feature.values[v]
+        var checkbox = new Checkbox(value, false, true)
+        checkbox.stateChangeListener = function () {
+          self.filterChanged()
+        }
+        checkbox.appendTo(this.content)
+        this.checkboxes.push(checkbox)
+        this.checkboxesByValue[value] = checkbox
+      }
     } else if (this.type === 'string' || this.type === 'url' || this.type === 'image') { // String, url and image
       if (this.feature.values.length <= MAXIMUM_VALUES_FOR_CHECKBOX) {
         this.hasCheckboxes = true
@@ -160,7 +173,15 @@ class Filter {
           (this.hasCheckboxes && this.checkboxesByValue[cell.value].checked) ||
           (!this.hasCheckboxes && this.searchRegex.test(cell.value)))) ||
         (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper) ||
-        (cell.type === 'boolean' && ((this.trueCheckbox.checked && cell.value) || (this.falseCheckbox.checked && !cell.value)))))
+        (cell.type === 'boolean' && ((this.trueCheckbox.checked && cell.value) || (this.falseCheckbox.checked && !cell.value)))) ||
+        (cell.type === 'multiple' && this.matchMultiple(cell)))
+  }
+
+  matchMultiple (cell) {
+    for (var v in this.checkboxesByValue) {
+      if ((this.checkboxesByValue[v].checked && cell.value.indexOf(v) === -1) || (this.checkboxesByValue[v].not && cell.value.indexOf(v) !== -1)) return false
+    }
+    return true
   }
 
   filterChanged () {
@@ -170,7 +191,8 @@ class Filter {
         (this.hasCheckboxes && this.checkCheckboxesState()) ||
         (!this.hasCheckboxes && this.searchString.length === 0))) ||
       (this.type === 'number' && this.lower === this.feature.min && this.upper === this.feature.max) ||
-      (this.type === 'boolean' && this.trueCheckbox.checked && this.falseCheckbox.checked)
+      (this.type === 'boolean' && this.trueCheckbox.checked && this.falseCheckbox.checked) ||
+      (this.type === 'multiple' && this.checkCheckboxesState(false, false))
 
     this.editor.filterChanged(this)
     //console.timeEnd('filter.filterChanged')
