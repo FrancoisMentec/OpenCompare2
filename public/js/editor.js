@@ -39,7 +39,9 @@ class Editor {
       self.pcmFeatures.className = top > 0
         ? 'scrolled'
         : ''
-      self.configurator.className = self.pcmView.scrollLeft > 0
+      var left = self.pcmView.scrollLeft
+      self.fixedFeaturesName.style.left = self.fixedFeaturesColumn.style.left = left + 'px'
+      self.fixedFeaturesName.className = self.fixedFeaturesColumn.className = left > 0
         ? 'scrolledRight'
         : ''
     })
@@ -52,7 +54,9 @@ class Editor {
         : ''
     })
     this.pcmFeatures = document.getElementById('pcmFeatures')
+    this.fixedFeaturesName = document.getElementById('fixedFeaturesName')
     this.pcmProducts = document.getElementById('pcmProducts')
+    this.fixedFeaturesColumn = document.getElementById('fixedFeaturesColumn')
 
     this.filters = []
     this.filtersByFeatureId = {}
@@ -115,9 +119,11 @@ class Editor {
     }
 
     // add features, products and filter to the DOM
-    this.pcmFeatures.appendChild(this.pcm.primaryFeature.div)
-    this.pcmProducts.appendChild(this.pcm.primaryFeature.column)
+    this.fixedFeaturesName.appendChild(this.pcm.primaryFeature.div)
+    this.fixedFeaturesColumn.appendChild(this.pcm.primaryFeature.column)
     this.pcm.primaryFeature.computeWidth()
+    this.pcmFeatures.style.paddingLeft = this.fixedFeaturesName.offsetWidth + 'px'
+    this.pcmProducts.style.paddingLeft = this.fixedFeaturesColumn.offsetWidth + 'px'
     this.configuratorContent.appendChild(this.filtersByFeatureId[this.pcm.primaryFeatureId].div)
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
       (function () {
@@ -135,6 +141,14 @@ class Editor {
         })
       }())
     }
+  }
+
+  fixFeature (feature) {
+    // TODO:
+  }
+
+  unfixFeature (feature) {
+    // TODO:
   }
 
   sort (featureId) {

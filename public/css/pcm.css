@@ -12,10 +12,28 @@
   height: 56px;
   white-space: nowrap;
   background-color: white;
+  z-index: 1;
+  overflow: hidden;
 }
 
 #pcmProducts {
   white-space: nowrap;
+}
+
+#fixedFeaturesName, #fixedFeaturesColumn {
+  display: inline-block;
+  position: absolute;
+  left: 0;
+  background-color: white;
+}
+
+#fixedFeaturesName.scrolledRight , #fixedFeaturesColumn.scrolledRight  {
+  border-right: 1px solid #BDBDBD;
+}
+
+#fixedFeaturesName {
+  top: 0;
+  z-index: 1;
 }
 
 .alignRight {
