@@ -176,7 +176,7 @@ class SliderRange {
 /* Checkbox */
 
 class Checkbox {
-  constructor (label, triState = false) {
+  constructor (label, checked = true, triState = false) {
     var self = this
 
     this.triState = triState
@@ -197,7 +197,7 @@ class Checkbox {
     this.div.appendChild(this.labelDiv)
 
     this.label = label
-    this.checked = true
+    this.checked = checked
   }
 
   set label (value) {
@@ -213,6 +213,13 @@ class Checkbox {
     this._checked = value
     this.checkClassName()
     this.triggerStateChange()
+  }
+
+  // Don't trigger stateChange
+  setChecked (value) {
+    this._not = false
+    this._checked = value
+    this.checkClassName()
   }
 
   get not () {

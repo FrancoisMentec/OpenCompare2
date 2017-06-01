@@ -2,6 +2,8 @@ var browser = typeof window !== 'undefined'
 
 class Feature {
   constructor (data, pcm, isFromDB = false) {
+    var self = this
+
     this.pcm = pcm
 
     if (typeof data.id !== 'string') console.error('feature id is incorrect')
@@ -13,6 +15,7 @@ class Feature {
 
     this.types = {}
     this.type = null
+    this.values = []
     this.occurrences = {}
     this.min = null
     this.max = null
@@ -25,12 +28,16 @@ class Feature {
 
       if (cell.type === 'multiple') {
         for (var i = 0, li = cell.value.length; i < li; i++) {
-          if (typeof this.occurrences[cell.value[i]] === 'undefined') this.occurrences[cell.value[i]] = 1
-          else this.occurrences[cell.value[i]]++
+          if (typeof this.occurrences[cell.value[i]] === 'undefined') {
+            this.values.push(cell.value[i])
+            this.occurrences[cell.value[i]] = 1
+          } else this.occurrences[cell.value[i]]++
         }
       } else {
-        if (typeof this.occurrences[cell.value] === 'undefined') this.occurrences[cell.value] = 1
-        else this.occurrences[cell.value]++
+        if (typeof this.occurrences[cell.value] === 'undefined') {
+          this.values.push(cell.value)
+          this.occurrences[cell.value] = 1
+        } else this.occurrences[cell.value]++
 
         if (cell.type === 'number') {
           if (this.min == null || cell.value < this.min) this.min = cell.value
@@ -38,6 +45,12 @@ class Feature {
         }
       }
     }
+
+    this.values.sort(function (a, b) {
+      if (self.occurrences[a] > self.occurrences[b]) return -1
+      if (self.occurrences[a] < self.occurrences[b]) return 1
+      return 0
+    })
 
     if (browser) { // create div if in browser
       this.div = document.createElement('div')
