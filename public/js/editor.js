@@ -9,6 +9,7 @@ class Editor {
 
     this.pcmId = pcmId
     this.pcm = null
+    this.productMathing = 0
     this.sortId = null
     this.sortOrder = null // INCREASE or DECREASE
 
@@ -99,6 +100,9 @@ class Editor {
     this.pcmAuthor.innerHTML = this.pcm.author || 'unknown'
     this.pcmLicense.innerHTML = this.pcm.license || 'unknown'
 
+    this.productMathing = this.pcm.products.length
+    this.updateConfiguratorTitle()
+
     // sort pcm
     this.sort(this.pcm.primaryFeatureId)
 
@@ -157,11 +161,23 @@ class Editor {
     this.pcm.sort(this.pcm.featuresById[this.sortId], this.sortOrder)
   }
 
+  updateConfiguratorTitle () {
+    this.configuratorTitle.innerHTML = this.productMathing + ' / ' + this.pcm.products.length +
+      ' (' + Math.round((this.productMathing / this.pcm.products.length) * 10000) / 100 + '%)'
+  }
+
   filterChanged (filter) {
+    this.productMathing = 0
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
       var product = this.pcm.products[p]
       product.cellsByFeatureId[filter.feature.id].match = filter.match(product)
-      product.show = product.match
+      if (product.match) {
+        this.productMathing++
+        product.show = true
+      } else {
+        product.show = false
+      }
     }
+    this.updateConfiguratorTitle()
   }
 }

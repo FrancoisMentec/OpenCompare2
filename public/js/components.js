@@ -139,7 +139,7 @@ class SliderRange {
     if (value < this.min) value = this.min
     if (value > this.upper) value = this.upper
     this._lower = value
-    this.lowerThumb.style.left = (this.lower / (this.max - this.min)) * 100 + '%'
+    this.lowerThumb.style.left = ((this.lower - this.min) / (this.max - this.min)) * 100 + '%'
     this.computeFullBar()
     this.triggerRangeChange()
   }
@@ -152,14 +152,14 @@ class SliderRange {
     if (value < this.lower) value = this.lower
     if (value > this.max) value = this.max
     this._upper = value
-    this.upperThumb.style.left = (this.upper / (this.max - this.min)) * 100 + '%'
+    this.upperThumb.style.left = ((this.upper - this.min) / (this.max - this.min)) * 100 + '%'
     this.computeFullBar()
     this.triggerRangeChange()
   }
 
   computeFullBar () {
-    var min = (this.lower / (this.max - this.min)) * 100
-    var max = (this.upper / (this.max - this.min)) * 100
+    var min = ((this.lower - this.min) / (this.max - this.min)) * 100
+    var max = ((this.upper - this.min) / (this.max - this.min)) * 100
     this.fullBar.style.left = min + '%'
     this.fullBar.style.width = max - min + '%'
   }

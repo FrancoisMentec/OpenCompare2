@@ -106,7 +106,7 @@ class Filter {
 
         for (var v = 0, lv = this.feature.values.length; v < lv; v++) {
           var value = this.feature.values[v]
-          var checkbox = new Checkbox(value + ' (' + this.feature.occurrences[value] + ')')
+          var checkbox = new Checkbox(value/* + ' (' + this.feature.occurrences[value] + ')'*/)
           checkbox.stateChangeListener = function () {
             self.filterChanged()
           }
@@ -152,12 +152,15 @@ class Filter {
   match (product) {
     var cell = product.cellsByFeatureId[this.feature.id]
 
+    if (cell.type !== this.type) console.error('Cross type matching not supported yet (feature type : ' + this.type + ', cell type : ' + cell.type + ')')
+
     return this.matchAll ||
-      ((cell.type === 'string' || cell.type === 'url' || cell.type === 'image') && (
-        (this.hasCheckboxes && this.checkboxesByValue[cell.value].checked) ||
-        (!this.hasCheckboxes && this.searchRegex.test(cell.value)))) ||
-      (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper) ||
-      (cell.type === 'boolean' && ((this.trueCheckbox.checked && cell.value) || (this.falseCheckbox.checked && !cell.value)))
+      (cell.type === this.type && (
+        ((cell.type === 'string' || cell.type === 'url' || cell.type === 'image') && (
+          (this.hasCheckboxes && this.checkboxesByValue[cell.value].checked) ||
+          (!this.hasCheckboxes && this.searchRegex.test(cell.value)))) ||
+        (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper) ||
+        (cell.type === 'boolean' && ((this.trueCheckbox.checked && cell.value) || (this.falseCheckbox.checked && !cell.value)))))
   }
 
   filterChanged () {
