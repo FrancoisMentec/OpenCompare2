@@ -20,7 +20,13 @@ app.get('/', function (req, res) {
 })
 
 app.get('/search', function (req, res) {
-	res.redirect('/search/*')
+	db.searchPCM(null, function (err, pcms) {
+		if (err) {
+			res.render('error', {error: err})
+		} else {
+			res.render('search', {search: '', pcms: pcms})
+		}
+	})
 })
 
 app.get('/search/:search', function (req, res) {

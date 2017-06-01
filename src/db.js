@@ -62,7 +62,7 @@ class DB {
       if (err) {
         callback(err, null)
       } else {
-        if (query === '*') query = {}
+        if (query == null || query === '*') query = {}
         else {
           var regex = new RegExp('.*(' + query.replace(/\ /g, '|') + ').*', 'i')
           query = {$or: [

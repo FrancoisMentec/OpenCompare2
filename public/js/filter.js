@@ -34,7 +34,7 @@ class Filter {
     this._searchString = ''
     this.matchAll = true
 
-    if (this.type === 'number') {
+    if (this.type === 'number') { // Number
       this.lower = this.feature.min
       this.upper = this.feature.max
 
@@ -63,7 +63,18 @@ class Filter {
         if (!isNaN(val)) self.slider.upper = val
       })
       this.upperInput.appendTo(this.content)
-    } else if (this.type === 'string' || this.type === 'url' || this.type === 'image') {
+    } else if (this.type === 'boolean') { // Boolean
+      this.trueCheckbox = new Checkbox('True')
+      this.trueCheckbox.stateChangeListener = function () {
+        self.filterChanged()
+      }
+      this.trueCheckbox.appendTo(this.content)
+      this.falseCheckbox = new Checkbox('False')
+      this.falseCheckbox.stateChangeListener = function () {
+        self.filterChanged()
+      }
+      this.falseCheckbox.appendTo(this.content)
+    } else if (this.type === 'string' || this.type === 'url' || this.type === 'image') { // String, url and image
       this.input = new TextField('Search (accept regex)')
       this.input.addEventListener('keyup', function () {
         if (self.input.value !== self.searchString) {
@@ -72,7 +83,7 @@ class Filter {
         }
       })
       this.input.appendTo(this.content)
-    } else {
+    } else { // Other
       this.content.innerHTML += '<br><br> Sorry can\'t filter on this type for now, it will be coming soon'
     }
   }
@@ -95,14 +106,18 @@ class Filter {
 
     return this.matchAll ||
       ((cell.type === 'string' || cell.type === 'url' || cell.type === 'image') && this.searchRegex.test(cell.value)) ||
-      (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper)
+      (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper) ||
+      (cell.type === 'boolean' && ((this.trueCheckbox.checked && cell.value) || (this.falseCheckbox.checked && !cell.value)))
   }
 
   filterChanged () {
+    console.time('filter.filterChanged')
     this.matchAll =
       ((this.type === 'string' || this.type === 'url' || this.type === 'image') && this.searchString.length === 0) ||
-      (this.type === 'number' && this.lower === this.feature.min && this.upper === this.feature.max)
+      (this.type === 'number' && this.lower === this.feature.min && this.upper === this.feature.max) ||
+      (this.type === 'boolean' && this.trueCheckbox.checked && this.falseCheckbox.checked)
 
     this.editor.filterChanged(this)
+    console.timeEnd('filter.filterChanged')
   }
 }

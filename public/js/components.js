@@ -71,6 +71,7 @@ class TextField {
 }
 
 /* slider range */
+
 class SliderRange {
   constructor (min, max) {
     var self = this
@@ -165,6 +166,85 @@ class SliderRange {
 
   triggerRangeChange () {
     if (this.rangeChangeListener) this.rangeChangeListener(this.lower, this.upper)
+  }
+
+  appendTo (element) {
+    element.appendChild(this.div)
+  }
+}
+
+/* Checkbox */
+
+class Checkbox {
+  constructor (label, triState = false) {
+    var self = this
+
+    this.triState = triState
+    this.stateChangeListener = null
+
+    this.div = document.createElement('div')
+    this.div.className = 'checkbox'
+    this.checkbox = document.createElement('div')
+    this.checkbox.className = 'box'
+    this.checkbox.addEventListener('click', function () {
+      self.switchState()
+    })
+    this.div.appendChild(this.checkbox)
+    this.labelDiv = document.createElement('label')
+    this.labelDiv.addEventListener('click', function () {
+      self.switchState()
+    })
+    this.div.appendChild(this.labelDiv)
+
+    this.label = label
+    this.checked = true
+  }
+
+  set label (value) {
+    this.labelDiv.innerHTML = value
+  }
+
+  get checked () {
+    return this._checked
+  }
+
+  set checked (value) {
+    this._not = false
+    this._checked = value
+    this.checkClassName()
+    this.triggerStateChange()
+  }
+
+  get not () {
+    return this._not
+  }
+
+  set not (value) {
+    this._checked = false
+    this._not = value
+    this.checkClassName()
+    this.triggerStateChange()
+  }
+
+  checkClassName () {
+    var className = 'checkbox'
+    if (this.checked) className += ' checked'
+    else if (this.not) className += ' not'
+    this.div.className = className
+  }
+
+  switchState () {
+    if (this.triState) {
+      if (this.checked) this.not = true
+      else if (this.not) this.checked = false
+      else this.checked = true
+    } else {
+      this.checked = !this.checked
+    }
+  }
+
+  triggerStateChange () {
+    if (this.stateChangeListener) this.stateChangeListener()
   }
 
   appendTo (element) {

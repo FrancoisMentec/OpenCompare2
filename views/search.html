@@ -10,7 +10,12 @@
 
 		--><div id="searchResults">
 			<div data-if="root.pcms.length === 0">
-				Sorry, it looks like we don't have any data about !{root.search}, if you find something about it try to import it, that's help a lot.
+				<div data-if="root.search.length > 0">
+					Sorry, it looks like we don't have any data about !{root.search}, if you find something about it try to import it, that's help a lot.
+				</div>
+				<div data-if="root.search.length === 0">
+					Sorry, it looks like we don't have any data yet, be the first to import something.
+				</div>
 			</div>
 			<div data-if="root.pcms.length > 0">
 				<div id="resultsNumber" class="caption">!{root.pcms.length} results</div>

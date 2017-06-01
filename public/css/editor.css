@@ -167,6 +167,7 @@
 }
 
 .filterButton {
+  transition: 0.2s;
   width: 100%;
   height: 48px;
   line-height: 48px;
@@ -175,6 +176,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.filterButton:hover {
+  background-color: #FAFAFA; /* gray 50 */
+}
+
+.filterButton:active {
+  background-color: #BDBDBD; /* gray 400 */
 }
 
 .filterArrow {
