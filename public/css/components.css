@@ -203,6 +203,9 @@ button:active, .button:active {
   height: 24px;
   line-height: 24px;
   margin: 5px 0 5px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .checked {
