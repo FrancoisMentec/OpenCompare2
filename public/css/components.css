@@ -56,6 +56,25 @@ button:active, .button:active {
   background-color: #00796B; /* Teal 700 */
 }
 
+button.material-icons {
+  min-width: 42px;
+  padding: 0;
+}
+
+.flatButton {
+  color: #009688; /* Teal 500 */
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.flatButton:hover {
+  background-color: rgba(0,0,0,0.07)
+}
+
+.flatButton:active {
+  background-color: rgba(0,0,0,0.2)
+}
+
 /* text field */
 
 .textField {

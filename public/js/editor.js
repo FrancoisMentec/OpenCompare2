@@ -44,9 +44,6 @@ class Editor {
       self.configurator.className = self.fixedFeaturesName.className = self.fixedFeaturesColumn.className = left > 0
         ? 'scrolledRight'
         : ''
-      /*if (self.fixedFeaturesName.innerHTML === '') self.configurator.className = left > 0
-        ? 'scrolledRight'
-        : ''*/
     })
     this.configurator = document.getElementById('configurator')
     this.configuratorTitle = document.getElementById('configuratorTitle')
@@ -144,7 +141,7 @@ class Editor {
             self.sort(feature.id)
           }
         })
-        feature.div.addEventListener('contextmenu', function (e) {
+        feature.fixButton.addEventListener('click', function (e) {
           e.stopPropagation()
           e.preventDefault()
           if (feature.fixed) self.unfixFeature(feature)

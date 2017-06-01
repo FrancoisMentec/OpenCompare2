@@ -57,6 +57,10 @@ class Feature {
       this.div = document.createElement('div')
       this.div.className = 'pcmFeature'
       this.div.innerHTML = this.name
+      this.fixButton = document.createElement('button')
+      this.fixButton.className = 'flatButton material-icons'
+      this.fixButton.innerHTML = 'place'
+      this.div.appendChild(this.fixButton)
 
       this.column = document.createElement('div')
       this.column.className = 'pcmColumn'

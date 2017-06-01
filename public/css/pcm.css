@@ -48,14 +48,21 @@
 }
 
 .pcmFeature {
+  position: relative;
   display: inline-block;
   vertical-align: top;
   height: 56px;
   line-height: 56px;
+  padding-right: 44px;
   font-family: Roboto-Medium;
   font-size: 12px;
   color: #9E9E9E; /* gray 500 */
   cursor: pointer;
+}
+
+.pcmFeature.alignRight {
+  padding-right: auto;
+  padding-left: 44px;
 }
 
 .pcmFeature:hover {
@@ -108,6 +115,27 @@
 
 .pcmFeature.alignRight.decrease:before {
   content: "arrow_upward";
+}
+
+.pcmFeature button {
+  position: absolute;
+  top: 10px;
+  right: 2px;
+  color: #9E9E9E; /* Gray 500 */
+  opacity: 0;
+}
+
+.pcmFeature:hover button {
+  opacity: 1;
+}
+
+.pcmFeature button:hover {
+  color: #009688; /* Teal 500 */
+}
+
+.pcmFeature.alignRight button {
+  right: auto;
+  left: 2px;
 }
 
 .pcmColumn {
