@@ -2,6 +2,9 @@ var express = require('express')
 var app = express()
 var http = require('http').Server(app)
 var gaikan = require('gaikan')
+var bodyParser = require('body-parser')
+var multer  = require('multer')
+var upload = multer({dest: 'uploads/'})
 
 var db = require('./src/db.js')
 var importer = require('./src/importer.js')
@@ -13,6 +16,8 @@ app.set('views', './views')
 app.engine('html', gaikan)
 app.set('view engine', '.html')
 app.use(express.static(__dirname + '/public'))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
 // Routing
 app.get('/', function (req, res) {
@@ -54,8 +59,9 @@ app.get('/pcm/:id', function (req, res) {
 	res.render('editor', {id: req.params.id})
 })
 
-app.get('/import', function (req, res) {
-	res.render('index')
+app.post('/import', upload.single('file'), function (req, res) {
+	console.log(req.file)
+	res.send(req.file)
 })
 
 app.get('/import/:src', function (req, res) {

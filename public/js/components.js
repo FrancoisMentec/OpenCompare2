@@ -258,3 +258,43 @@ class Checkbox {
     element.appendChild(this.div)
   }
 }
+
+/* Popup */
+
+class Popup {
+  constructor (title, content, actions = null) {
+    this.wrap = document.createElement('div')
+    this.wrap.className = 'popupWrap'
+    document.body.appendChild(this.wrap)
+    this.popup = document.createElement('div')
+    this.popup.className = 'popup'
+    this.wrap.appendChild(this.popup)
+    this.title = document.createElement('div')
+    this.title.className = 'popupTitle'
+    this.title.innerHTML = title
+    this.popup.appendChild(this.title)
+    this.content = document.createElement('div')
+    this.content.className = 'popupContent'
+    this.content.innerHTML = content
+    this.popup.appendChild(this.content)
+    if (actions) {
+      this.actionDiv = document.createElement('div')
+      this.actionDiv.className = 'popupActions'
+      this.popup.appendChild(this.actionDiv)
+      for (var a in actions) {
+        var action = document.createElement('button')
+        action.innerHTML = a
+        action.addEventListener('click', actions[a])
+        this.actionDiv.appendChild(action)
+      }
+    }
+  }
+
+  show () {
+    this.wrap.className = 'popupWrap visible'
+  }
+
+  hide () {
+    this.wrap.className = 'popupWrap'
+  }
+}

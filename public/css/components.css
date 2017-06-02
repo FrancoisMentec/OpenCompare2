@@ -304,3 +304,46 @@ button.material-icons {
 .checkbox label {
   cursor: pointer;
 }
+
+/* Popup */
+
+.popupWrap {
+  transition: opacity 0.2s;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.24);
+  opacity: 0;
+}
+
+.popupWrap.visible {
+  display: block;
+  opacity: 1;
+}
+
+.popup {
+  transition: top 0.2s;
+  display: inline-block;
+  position: fixed;
+  top: 100%;
+  left: 50%;
+  min-width: 300px;
+  max-width: calc(100% - 20px);
+  max-height: calc(100% - 100px);
+  transform: translateX(-50%);
+  background-color: white;
+  border-radius: 2px;
+  overflow: auto;
+}
+
+.visible .popup {
+  top: 50px;
+}
+
+.popupTitle {
+  font-family: Roboto-Bold;
+  font-size: 16px;
+}
