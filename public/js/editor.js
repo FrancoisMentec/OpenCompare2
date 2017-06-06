@@ -82,7 +82,7 @@ class Editor {
       } else if (typeof data.error !== 'undefined') {
         alert(data.error)
       } else {
-        self.pcm = new PCM(data)
+        self.pcm = new PCM(data, true)
         self.pcmLoaded()
       }
     }

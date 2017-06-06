@@ -6,17 +6,37 @@
 
 #importZone {
   display: none;
-  transition: opacity 0.2s;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: #009688; /* Teal 500 */
-  opacity: 0;
+  color: white;
 }
 
-#importZone.dragover {
-  display: block;
-  opacity: 0.24;
+#importTitle {
+  position: fixed;
+  width: 100%;
+  bottom: calc(50% + 100px);
+  text-align: center;
+}
+
+#importIcon {
+  transition: 0.2s;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 200px;
+  text-shadow: 0 0 5px rgba(0,0,0,0.24), 0 10px 10px rgba(0,0,0,0.24);
+  animation-name: importIconAnimation;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes importIconAnimation {
+    0% {top: 50%;}
+    50% {top: calc(50% - 50px);}
+    100% {top: 50%;}
 }

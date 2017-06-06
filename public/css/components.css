@@ -82,7 +82,8 @@ button.material-icons {
 	display: inline-block;
 	position: relative;
 	width: 100%;
-	height: 65px;
+	min-height: 65px;
+  padding: 23px 0 8px 0;
 	line-height: 1em;
 }
 
@@ -112,10 +113,7 @@ button.material-icons {
 	width: 100%;
 }
 
-.textField input {
-  position: absolute;
-	left: 0;
-	bottom: 8px;
+.textField input, .textField textarea {
   box-sizing: content-box;
 	width: 100%;
 	height: 18px;
@@ -127,11 +125,18 @@ button.material-icons {
 	outline: none;
 }
 
+.textField textarea {
+  height: calc(5em + 10px);
+  padding-top: 0px;
+  margin-top: 8px;
+}
+
 .textField label{
 	transition: 0.2s;
 	position: absolute;
 	left: 0;
 	top: 37px;
+  z-index: -1;
 	font-size: 14px;
   white-space: nowrap;
 	color: #9E9E9E;
@@ -308,7 +313,6 @@ button.material-icons {
 /* Popup */
 
 .popupWrap {
-  transition: opacity 0.2s;
   display: none;
   position: fixed;
   top: 0;
@@ -316,12 +320,6 @@ button.material-icons {
   bottom: 0;
   right: 0;
   background-color: rgba(0,0,0,0.24);
-  opacity: 0;
-}
-
-.popupWrap.visible {
-  display: block;
-  opacity: 1;
 }
 
 .popup {
@@ -337,13 +335,20 @@ button.material-icons {
   background-color: white;
   border-radius: 2px;
   overflow: auto;
-}
-
-.visible .popup {
-  top: 50px;
+  box-shadow: 0 10px 45px rgba(0,0,0,0.24);
 }
 
 .popupTitle {
   font-family: Roboto-Bold;
   font-size: 16px;
+  padding: 24px 24px 20px 24px;
+}
+
+.popupContent {
+  padding: 0 24px 24px 24px;
+}
+
+.popupActions {
+  text-align: right;
+  padding: 8px;
 }

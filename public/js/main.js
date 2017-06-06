@@ -14,22 +14,54 @@ function importPCM (file = false) {
     if (val.length > 0) {
       window.location = '/import/' + encodeURIComponent(val)
     } else {
-      alert('for import instruction check the github')
+      var popup = new Popup('Import instruction',
+        'For import instructions check <a href="https://github.com/FrancoisMentec/OpenCompare2#import-data">GitHub</a>.',
+        {'OK': function () { popup.delete() }})
+      popup.show()
     }
   } else {
-    var popup = new Popup('Import', 'import content', {'import': function () {
-      popup.hide()
+    var importContent = document.createElement('div')
+    var importName = new TextField('Name')
+    importName.appendTo(importContent)
+    importName.value = (res = /(.*)\.[^\.]*/.exec(file.name))
+      ? res[1]
+      : file.name
+    var importSource = new TextField('Source')
+    importSource.appendTo(importContent)
+    importSource.value = file.name
+    var importAuthor = new TextField('Author')
+    importAuthor.appendTo(importContent)
+    var importLicense = new TextField('License')
+    importLicense.appendTo(importContent)
+    var importDescription = new TextField('Description', true)
+    importDescription.appendTo(importContent)
+    var errorDiv = document.createElement('div')
+    errorDiv.className = 'textError'
+    importContent.appendChild(errorDiv)
+    var importPopup = new Popup('Import', importContent, {'CANCEL': function () {
+      importPopup.delete()
+    }, 'IMPORT': function () {
+      var r = new XMLHttpRequest()
+      r.open('POST', '/import', true)
+      var formData = new FormData()
+      formData.append('file', file)
+      formData.append('name', importName.value)
+      formData.append('source', importSource.value)
+      formData.append('author', importAuthor.value)
+      formData.append('license', importLicense.value)
+      formData.append('description', importDescription.value)
+      r.onreadystatechange = function () {
+        if (r.readyState != 4 || r.status != 200) return
+        var res = JSON.parse(r.responseText)
+        if (res.error) {
+          errorDiv.innerHTML = res.error
+        } else {
+          window.location = '/pcm/' + res.pcm
+        }
+      }
+      r.send(formData)
     }})
-    popup.show()
-    /*var r = new XMLHttpRequest()
-    r.open('POST', '/import', true)
-    var formData = new FormData()
-    formData.append('file', file)
-    r.onreadystatechange = function () {
-      if (r.readyState != 4 || r.status != 200) return
-      console.log(r.responseText)
-    }
-    r.send(formData)*/
+    importPopup.show()
   }
 }
 
@@ -39,6 +71,7 @@ function initDrop () {
   document.body.addEventListener('dragenter', function (e) {
     e.preventDefault()
     importZone.className = 'dragover'
+    $(importZone).fadeIn()
   })
 
   importZone.addEventListener('dragover', function (e) {
@@ -48,11 +81,13 @@ function initDrop () {
   importZone.addEventListener('dragleave', function (e) {
     e.preventDefault()
     importZone.className = ''
+    $(importZone).fadeOut()
   })
 
   importZone.addEventListener('drop', function (e) {
     e.preventDefault()
     importZone.className = ''
+    $(importZone).fadeOut()
     console.log(e)
     var dt = e.dataTransfer
     if (dt.items[0]) {

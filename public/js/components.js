@@ -1,7 +1,7 @@
 /* text field */
 
 class TextField {
-  constructor (label = null) {
+  constructor (label = null, area = false) {
     var self = this
 
     this._active = false
@@ -10,7 +10,11 @@ class TextField {
     this.div.className = 'textField'
     this.labelDiv = document.createElement('label')
     this.div.appendChild(this.labelDiv)
-    this.input = document.createElement('input')
+    if (!area) {
+      this.input = document.createElement('input')
+    } else {
+      this.input = document.createElement('textarea')
+    }
     this.input.addEventListener('keyup', function () {
       self.checkClassName()
     })
@@ -263,6 +267,7 @@ class Checkbox {
 
 class Popup {
   constructor (title, content, actions = null) {
+    this.visible = false
     this.wrap = document.createElement('div')
     this.wrap.className = 'popupWrap'
     document.body.appendChild(this.wrap)
@@ -275,7 +280,11 @@ class Popup {
     this.popup.appendChild(this.title)
     this.content = document.createElement('div')
     this.content.className = 'popupContent'
-    this.content.innerHTML = content
+    if (typeof content === 'string') {
+      this.content.innerHTML = content
+    } else {
+      this.content.appendChild(content)
+    }
     this.popup.appendChild(this.content)
     if (actions) {
       this.actionDiv = document.createElement('div')
@@ -283,6 +292,7 @@ class Popup {
       this.popup.appendChild(this.actionDiv)
       for (var a in actions) {
         var action = document.createElement('button')
+        action.className = 'flatButton'
         action.innerHTML = a
         action.addEventListener('click', actions[a])
         this.actionDiv.appendChild(action)
@@ -291,10 +301,28 @@ class Popup {
   }
 
   show () {
-    this.wrap.className = 'popupWrap visible'
+    //this.wrap.className = 'popupWrap visible'
+    this.visible = true
+    $(this.wrap).fadeIn(200)
+    $(this.popup).animate({top: '50px'}, 200)
   }
 
   hide () {
-    this.wrap.className = 'popupWrap'
+    //this.wrap.className = 'popupWrap'
+    this.visible = false
+    $(this.wrap).fadeOut(200)
+    $(this.popup).animate({top: '100%'}, 200)
+  }
+
+  delete () {
+    var self = this
+    if (this.visible) {
+      this.hide()
+      setTimeout(function () {
+        document.body.removeChild(self.wrap)
+      }, 200)
+    } else {
+      document.body.removeChild(self.wrap)
+    }
   }
 }

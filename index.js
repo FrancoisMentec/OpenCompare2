@@ -1,3 +1,4 @@
+var fs = require('fs')
 var express = require('express')
 var app = express()
 var http = require('http').Server(app)
@@ -60,8 +61,27 @@ app.get('/pcm/:id', function (req, res) {
 })
 
 app.post('/import', upload.single('file'), function (req, res) {
-	console.log(req.file)
-	res.send(req.file)
+	importer({
+		file: req.file,
+		name: req.body.name,
+		source: req.body.source,
+		author: req.body.author,
+		license: req.body.license,
+		description: req.body.description
+	}, function (err, pcm) {
+		fs.unlinkSync(req.file.path)
+		if (err) {
+			res.send({error: err})
+		} else {
+			db.savePCM(pcm, function (err, res2) {
+				if (err) {
+					res.send({error: err})
+				} else {
+					res.send({pcm: res2.insertedId})
+				}
+			})
+		}
+	})
 })
 
 app.get('/import/:src', function (req, res) {

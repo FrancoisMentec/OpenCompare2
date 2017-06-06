@@ -14,7 +14,9 @@ class Feature {
     this.name = data.name
 
     this.types = {}
-    this.type = null
+    this.type = isFromDB
+      ? data.type
+      : null
     this.values = []
     this.occurrences = {}
     this.min = null
