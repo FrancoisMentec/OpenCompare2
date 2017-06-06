@@ -2,6 +2,8 @@
 <html>
 	<head data-include="header"></head>
 	<body>
+		<div data-include="login"></div>
+
     <div id="searchWrap">
       <h1>OpenCompare 2</h1>
       <div id="searchForm">
@@ -11,9 +13,10 @@
 				<button id="importButton" onclick="importPCM()"><span class="material-icons">cloud_upload</span> Import</button>
       </div>
     </div>
-		<div id="importZone">
+		<div id="importDiv">
 			<h1 id="importTitle">Drop your file to import it</h1>
 			<div id="importIcon" class="material-icons">cloud_upload</div>
+			<div id="importZone"></div>
 		</div>
 		<script>
 			initDrop()

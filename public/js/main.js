@@ -33,7 +33,7 @@ function importPCM (file = false) {
     importAuthor.appendTo(importContent)
     var importLicense = new TextField('License')
     importLicense.appendTo(importContent)
-    var importDescription = new TextField('Description', true)
+    var importDescription = new TextField('Description', 'area')
     importDescription.appendTo(importContent)
     var errorDiv = document.createElement('div')
     errorDiv.className = 'textError'
@@ -66,12 +66,12 @@ function importPCM (file = false) {
 }
 
 function initDrop () {
+  importDiv = document.getElementById('importDiv')
   importZone = document.getElementById('importZone')
 
   document.body.addEventListener('dragenter', function (e) {
     e.preventDefault()
-    importZone.className = 'dragover'
-    $(importZone).fadeIn()
+    $(importDiv).fadeIn()
   })
 
   importZone.addEventListener('dragover', function (e) {
@@ -81,13 +81,12 @@ function initDrop () {
   importZone.addEventListener('dragleave', function (e) {
     e.preventDefault()
     importZone.className = ''
-    $(importZone).fadeOut()
+    $(importDiv).fadeOut()
   })
 
   importZone.addEventListener('drop', function (e) {
     e.preventDefault()
-    importZone.className = ''
-    $(importZone).fadeOut()
+    $(importDiv).fadeOut()
     console.log(e)
     var dt = e.dataTransfer
     if (dt.items[0]) {

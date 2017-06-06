@@ -1,7 +1,7 @@
 /* text field */
 
 class TextField {
-  constructor (label = null, area = false) {
+  constructor (label = null, type = 'text') {
     var self = this
 
     this._active = false
@@ -10,10 +10,11 @@ class TextField {
     this.div.className = 'textField'
     this.labelDiv = document.createElement('label')
     this.div.appendChild(this.labelDiv)
-    if (!area) {
-      this.input = document.createElement('input')
-    } else {
+    if (type === 'area') {
       this.input = document.createElement('textarea')
+    } else {
+      this.input = document.createElement('input')
+      this.input.type = type
     }
     this.input.addEventListener('keyup', function () {
       self.checkClassName()

@@ -4,7 +4,7 @@
   text-align: center;
 }
 
-#importZone {
+#importDiv {
   display: none;
   position: fixed;
   top: 0;
@@ -33,6 +33,14 @@
   animation-name: importIconAnimation;
   animation-duration: 2s;
   animation-iteration-count: infinite;
+}
+
+#importZone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 @keyframes importIconAnimation {

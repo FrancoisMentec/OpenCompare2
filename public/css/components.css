@@ -12,10 +12,15 @@
 
 a {
   color: #009688; /* Teal 500 */
+  cursor: pointer;
 }
 
 a:visited {
   color: #00796B; /* Teal 700 */
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 /* Input */
@@ -319,6 +324,7 @@ button.material-icons {
   left: 0;
   bottom: 0;
   right: 0;
+  z-index: 4;
   background-color: rgba(0,0,0,0.24);
 }
 
