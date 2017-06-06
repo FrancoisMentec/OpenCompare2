@@ -1,0 +1,18 @@
+#loginDiv {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 12px 5px 12px 5px;
+}
+
+/*#loginButton {
+  height: auto;
+  font-size: 52px;
+  background-color: transparent;
+  border-radius: 50%;
+}
+
+#loginButton:hover {
+  color: #E0F2F1;
+  background-color: #009688; /* Teal 500 */
+/*}*/
