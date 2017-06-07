@@ -3,22 +3,26 @@ var express = require('express')
 var app = express()
 var http = require('http').Server(app)
 var gaikan = require('gaikan')
+var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
 var multer  = require('multer')
 var upload = multer({dest: 'uploads/'})
 
 var db = require('./src/db.js')
 var importer = require('./src/importer.js')
+var isMail = require('./public/js/typeDetection.js').isMail
 
 const PORT = 9009
+const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 14 // cookie expire in 2 weeks
 
 // app settings
 app.set('views', './views')
 app.engine('html', gaikan)
 app.set('view engine', '.html')
 app.use(express.static(__dirname + '/public'))
-app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
+app.use(cookieParser())
 
 // Routing
 app.get('/', function (req, res) {
@@ -98,6 +102,51 @@ app.get('/import/:src', function (req, res) {
 			})
 		}
 	})
+})
+
+app.post('/login', function (req, res) {
+	var err = ''
+	var mail = req.body.mail
+	var password = req.body.password
+
+	if (!mail) err += 'mail missing'
+	if (!password) err += err.length > 0 ? ', password missing' : 'password missing'
+
+	if (err.length > 0) res.send({error: err})
+	else {
+		db.connectUser(mail, password, function (err, token) {
+			if (!err) res.cookie('token', token, {maxAge: COOKIE_MAX_AGE})
+			res.send({error: err})
+		})
+	}
+})
+
+app.post('/signup', function (req, res) {
+	var err = ''
+	var mail = req.body.mail
+	var pseudo = req.body.pseudo
+	var password = req.body.password
+
+	if (!mail || mail.length === 0 || !isMail(mail)) err += 'invalid mail'
+	if (!pseudo || pseudo.length < 3 || pseudo.length > 20) err += err.length > 0 ? ', invalid pseudo (3 to 20 characters)' : 'invalid pseudo (3 to 20 characters)'
+	if (!password || password.length < 5) err += err.length > 0 ? ', invalid password (min 5 characters)' : 'invalid password (min 5 characters)'
+
+	if (err.length > 0) res.send({error: err})
+	else {
+		db.newUser(mail, pseudo, password, function (err) {
+			res.send({error: err})
+		})
+	}
+})
+
+app.get('/user', function (req, res) {
+	if (req.cookies && req.cookies.token) {
+		db.getUser(req.cookies.token, function (err, user) {
+			res.send({error: err, user: user})
+		})
+	} else {
+		res.send({error: 'not connected', user: null})
+	}
 })
 
 app.get('*', function (req, res) {

@@ -104,3 +104,7 @@ h1 {
 .textError {
   color: #F44336; /* red 500 */
 }
+
+.textSuccess {
+  color: #4CAF50; /* green 500 */
+}

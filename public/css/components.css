@@ -84,7 +84,7 @@ button.material-icons {
 
 .textField {
 	transition: 0.2s;
-	display: inline-block;
+	/*display: inline-block;*/
 	position: relative;
 	width: 100%;
 	min-height: 65px;

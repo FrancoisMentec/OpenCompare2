@@ -1,6 +1,10 @@
+var crypto = require('crypto')
+var bcrypt = require('bcrypt')
 var MongoClient = require('mongodb').MongoClient
 var ObjectId = require('mongodb').ObjectID
 
+const SALT_ROUNDS = 10
+const TOKEN_LENGTH = 64
 const DEFAULT_URL = 'mongodb://localhost:27017/OpenCompare2'
 
 class DB {
@@ -30,6 +34,7 @@ class DB {
         })
         self.db = db
         self.pcmCollection = self.db.collection('pcm')
+        self.userCollection = self.db.collection('user')
     	}
 
       if (typeof callback === 'function') callback(err)
@@ -84,7 +89,7 @@ class DB {
   savePCM (pcm, callback) {
     var self = this
 
-    if (pcm.id != null) {
+    if (pcm._id != null) {
       console.log('no way to modify existing pcm atm')
     } else {
       this.exec(function (err) {
@@ -101,6 +106,77 @@ class DB {
         }
       })
     }
+  }
+
+  newUser (mail, pseudo, password, callback) {
+    var self = this
+
+    this.exec(function (err) {
+      if (err) callback(err)
+      else {
+        self.userCollection.findOne({mail: mail}, function (err, user) {
+          if (err) callback(err)
+          else if (user) callback('Mail already taken')
+          else {
+            self.userCollection.insertOne({
+              mail: mail,
+              pseudo: pseudo,
+              password: bcrypt.hashSync(password, SALT_ROUNDS)
+            }, function (err, res) {
+              if (err) callback(err)
+              else {
+                callback(null)
+              }
+            })
+          }
+        })
+      }
+    })
+  }
+
+  connectUser (mail, password, callback) {
+    var self = this
+
+    this.exec(function (err) {
+      if (err) callback(err)
+      else {
+        self.userCollection.findOne({mail: mail}, function (err, user) { // find user
+          if (err) callback(err)
+          else if (!user) callback('There is no account using this mail')
+          else if (!bcrypt.compareSync(password, user.password)) callback('Invalid password') // check password
+          else {
+            crypto.randomBytes(TOKEN_LENGTH, function(err, buffer) { // generate token
+              var token = buffer.toString('hex')
+              self.userCollection.findOne({token: token}, function (err, user2) { // check that token is avaible
+                if (err) callback(err)
+                else if (user2) callback('Unlucky token collision (devs suck), try to login again')
+                else {
+                  self.userCollection.updateOne({_id: ObjectId(user._id)}, {$set: {token: token}}, function (err, res) { // set user token
+                    if (err) callback(err)
+                    else {
+                      callback(null, token) // return token
+                    }
+                  })
+                }
+              })
+            })
+          }
+        })
+      }
+    })
+  }
+
+  getUser (token, callback) {
+    var self = this
+
+    this.exec(function (err) {
+      if (err) callback(err)
+      else {
+        self.userCollection.findOne({token: token}, {mail: true, pseudo: true}, function (err, user) {
+          callback(err, user)
+        })
+      }
+    })
   }
 }
 
