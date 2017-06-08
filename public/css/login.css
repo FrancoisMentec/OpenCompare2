@@ -5,6 +5,18 @@
   padding: 12px 5px 12px 5px;
 }
 
+#loginDiv > * {
+  vertical-align: middle;
+}
+
+#userPseudo {
+  font-family: Roboto-Medium;
+}
+
+#loginButton, #logoutButton {
+  display: none;
+}
+
 /*#loginButton {
   height: auto;
   font-size: 52px;

@@ -1,6 +1,16 @@
 var user = null
 
-function connect () {
+var userPseudo = document.getElementById('userPseudo')
+var loginButton = document.getElementById('loginButton')
+loginButton.addEventListener('click', function () {
+  loginPopup.show()
+})
+var logoutButton = document.getElementById('logoutButton')
+logoutButton.addEventListener('click', function () {
+  logout()
+})
+
+function login () {
   var r = new XMLHttpRequest()
   r.open('GET', '/user', true)
   r.onreadystatechange = function () {
@@ -8,23 +18,39 @@ function connect () {
     var res = JSON.parse(r.responseText)
     if (res.user) {
       user = res.user
-      document.getElementById('userPseudo').innerHTML = user.pseudo
+      userPseudo.innerHTML = user.pseudo
+      loginButton.style.display = 'none'
+      logoutButton.style.display = 'inline-block'
     } else {
-      console.log('not connected')
+      userPseudo.innerHTML = ''
+      loginButton.style.display = 'inline-block'
+      logoutButton.style.display = 'none'
     }
+  }
+  r.send()
+}
+
+function logout () {
+  var r = new XMLHttpRequest()
+  r.open('GET', '/logout', true)
+  r.onreadystatechange = function () {
+    if (r.readyState != 4 || r.status != 200) return
+    userPseudo.innerHTML = ''
+    loginButton.style.display = 'inline-block'
+    logoutButton.style.display = 'none'
   }
   r.send()
 }
 
 // Create login popup
 var loginForm = document.createElement('div')
-var signupButton = document.createElement('a')
-signupButton.innerHTML = 'Or create an account'
-signupButton.addEventListener('click', function () {
+var signupLink = document.createElement('a')
+signupLink.innerHTML = 'Or create an account'
+signupLink.addEventListener('click', function () {
   loginPopup.hide()
   signupPopup.show()
 })
-loginForm.appendChild(signupButton)
+loginForm.appendChild(signupLink)
 var loginMail = new TextField('Mail')
 loginMail.appendTo(loginForm)
 var loginPassword = new TextField('Password', 'password')
@@ -47,7 +73,7 @@ var loginPopup = new Popup('Login', loginForm, {
       if (res.error) {
         loginError.innerHTML = res.error
       } else {
-        connect()
+        login()
         loginPopup.hide()
       }
     }
@@ -58,13 +84,13 @@ var loginPopup = new Popup('Login', loginForm, {
 
 // Create signup popup
 var signupForm = document.createElement('div')
-var loginButton = document.createElement('a')
-loginButton.innerHTML = 'Or login into an existing account'
-loginButton.addEventListener('click', function () {
+var loginLink = document.createElement('a')
+loginLink.innerHTML = 'Or login into an existing account'
+loginLink.addEventListener('click', function () {
   signupPopup.hide()
   loginPopup.show()
 })
-signupForm.appendChild(loginButton)
+signupForm.appendChild(loginLink)
 var signupMail = new TextField('Mail')
 signupMail.appendTo(signupForm)
 var signupPseudo = new TextField('Pseudo')
@@ -97,8 +123,4 @@ var signupPopup = new Popup('Sign up', signupForm, {
   }
 })
 
-document.getElementById('loginButton').addEventListener('click', function () {
-  loginPopup.show()
-})
-
-connect()
+login()

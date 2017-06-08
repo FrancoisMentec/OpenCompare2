@@ -121,6 +121,13 @@ app.post('/login', function (req, res) {
 	}
 })
 
+app.get('/logout', function (req, res) {
+	if (req.cookies && req.cookies.token) {
+		res.clearCookie('token')
+	}
+	res.send('logout')
+})
+
 app.post('/signup', function (req, res) {
 	var err = ''
 	var mail = req.body.mail
