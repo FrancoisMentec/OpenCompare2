@@ -1,7 +1,9 @@
 var fs = require('fs')
 var express = require('express')
 var app = express()
-var http = require('http').Server(app)
+var http = require('http')
+var server = http.Server(app)
+var io = require('socket.io')(server)
 var gaikan = require('gaikan')
 var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
@@ -11,6 +13,7 @@ var upload = multer({dest: 'uploads/'})
 var db = require('./src/db.js')
 var importer = require('./src/importer.js')
 var isMail = require('./public/js/typeDetection.js').isMail
+var editSessionManager = require('./src/editSessionManager.js')(db)
 
 const PORT = 9009
 const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 14 // cookie expire in 2 weeks
@@ -23,6 +26,11 @@ app.use(express.static(__dirname + '/public'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(cookieParser())
+
+// Socket
+io.on('connection', function (socket) {
+	editSessionManager.newUser(socket)
+})
 
 // Routing
 app.get('/', function (req, res) {
@@ -162,6 +170,6 @@ app.get('*', function (req, res) {
 })
 
 // start server
-http.listen(PORT, function () {
+server.listen(PORT, function () {
     console.log('Started OpenCompare2 on port ' + PORT)
 })

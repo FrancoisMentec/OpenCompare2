@@ -88,7 +88,7 @@ button.material-icons {
 	position: relative;
 	width: 100%;
 	min-height: 65px;
-  padding: 23px 0 8px 0;
+  padding: 23px 0 22px 0;
 	line-height: 1em;
 }
 
@@ -96,7 +96,7 @@ button.material-icons {
 	content: "";
 	position: absolute;
 	left: 0;
-	bottom: 8px;
+	bottom: 22px;
 	width: 100%;
 	height: 1px;
 	background-color: #9E9E9E; /* gray 500 */
@@ -107,11 +107,15 @@ button.material-icons {
 	transition: 0.2s;
 	position: absolute;
 	left: 50%;
-	bottom: 8px;
+	bottom: 22px;
 	transform: translateX(-50%);
 	width: 0;
 	height: 2px;
 	background-color: #009688; /* Teal 500 */
+}
+
+.textField.error::after {
+  background-color: #F44336; /* red 500 */
 }
 
 .textField.active::after{
@@ -147,10 +151,22 @@ button.material-icons {
 	color: #9E9E9E;
 }
 
-.textField.notEmpty label, .textField.active label{
+.textField.notEmpty label, .textField.active label {
 	top: 16px;
-	font-size: 0.8em;
+	font-size: 11px;
 	color: #009688; /* Teal 500 */
+}
+
+.textField.notEmpty.error label, .textField.active.error label {
+  color: #F44336; /* red 500 */
+}
+
+.textField .errorMessage {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+	font-size: 11px;
+  color: #F44336; /* red 500 */
 }
 
 /* slider */

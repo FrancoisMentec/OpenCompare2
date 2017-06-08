@@ -12,6 +12,24 @@ logoutButton.addEventListener('click', function () {
 
 function login () {
   var r = new XMLHttpRequest()
+  r.open('POST', '/login', true)
+  r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+  r.onreadystatechange = function () {
+    if (r.readyState != 4 || r.status != 200) return
+    var res = JSON.parse(r.responseText)
+    if (res.error) {
+      loginError.innerHTML = res.error
+    } else {
+      getUser()
+      loginPopup.hide()
+    }
+  }
+  r.send('mail=' + encodeURIComponent(loginMail.value) +
+    '&password=' + encodeURIComponent(loginPassword.value))
+}
+
+function getUser () {
+  var r = new XMLHttpRequest()
   r.open('GET', '/user', true)
   r.onreadystatechange = function () {
     if (r.readyState != 4 || r.status != 200) return
@@ -54,6 +72,11 @@ loginForm.appendChild(signupLink)
 var loginMail = new TextField('Mail')
 loginMail.appendTo(loginForm)
 var loginPassword = new TextField('Password', 'password')
+loginPassword.addEventListener('keyup', function (e) {
+  if (e.keyCode == 13) {
+    login()
+  }
+})
 loginPassword.appendTo(loginForm)
 var loginSuccess = document.createElement('div')
 loginSuccess.className = 'textSuccess'
@@ -63,23 +86,7 @@ loginError.className = 'textError'
 loginForm.appendChild(loginError)
 var loginPopup = new Popup('Login', loginForm, {
   'CANCEL': function () { loginPopup.hide() },
-  'LOGIN': function () {
-    var r = new XMLHttpRequest()
-    r.open('POST', '/login', true)
-    r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-    r.onreadystatechange = function () {
-      if (r.readyState != 4 || r.status != 200) return
-      var res = JSON.parse(r.responseText)
-      if (res.error) {
-        loginError.innerHTML = res.error
-      } else {
-        login()
-        loginPopup.hide()
-      }
-    }
-    r.send('mail=' + encodeURIComponent(loginMail.value) +
-      '&password=' + encodeURIComponent(loginPassword.value))
-  }
+  'LOGIN': function () { login() }
 })
 
 // Create signup popup
@@ -91,11 +98,21 @@ loginLink.addEventListener('click', function () {
   loginPopup.show()
 })
 signupForm.appendChild(loginLink)
-var signupMail = new TextField('Mail')
+var signupMail = new TextField('Mail', 'mail',  function (tf) {
+  if (!isMail(tf.value)) return 'Error: This is not a valid mail adress'
+  return null
+})
 signupMail.appendTo(signupForm)
-var signupPseudo = new TextField('Pseudo')
+var signupPseudo = new TextField('Pseudo', 'text', function (tf) {
+  if (tf.value.length < 3) return ('Error: The minimal pseudo length is 3')
+  if (tf.value.length > 20) return ('Error: The maximal pseudo length is 20')
+  return null
+})
 signupPseudo.appendTo(signupForm)
-var signupPassword = new TextField('Password', 'password')
+var signupPassword = new TextField('Password', 'password', function (tf) {
+  if (tf.value.length < 5) return ('Error: The minimal password length is 5')
+  return null
+})
 signupPassword.appendTo(signupForm)
 var signupError = document.createElement('div')
 signupError.className = 'textError'
@@ -123,4 +140,4 @@ var signupPopup = new Popup('Sign up', signupForm, {
   }
 })
 
-login()
+getUser()

@@ -7,6 +7,7 @@ class Editor {
   constructor (pcmId) {
     var self = this
 
+    this.server = null
     this.pcmId = pcmId
     this.pcm = null
     this.productMathing = 0
@@ -148,6 +149,24 @@ class Editor {
           else self.fixFeature(feature)
         })
       }())
+    }
+
+    // Connect to edit session
+    var token = /token=([^;]+)/.exec(document.cookie)[1] || null
+    if (token) {
+      this.server = io.connect()
+      this.server.on('connect', function () {
+        self.server.emit('handshake', {
+          pcmId: self.pcmId,
+          token: token
+        })
+      })
+      this.server.on('error', function (data) {
+        alert('server send error:' + data)
+      })
+      this.server.on('connectedToSession', function (data) {
+        console.log('connected to edit session')
+      })
     }
   }
 

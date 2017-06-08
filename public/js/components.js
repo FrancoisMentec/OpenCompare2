@@ -1,10 +1,11 @@
 /* text field */
 
 class TextField {
-  constructor (label = null, type = 'text') {
+  constructor (label = null, type = 'text', getError = null) {
     var self = this
 
     this._active = false
+    this.getError = getError
 
     this.div = document.createElement('div')
     this.div.className = 'textField'
@@ -17,6 +18,7 @@ class TextField {
       this.input.type = type
     }
     this.input.addEventListener('keyup', function () {
+      if (self.getError) self.errorMessage.innerHTML = self.getError(self) || ''
       self.checkClassName()
     })
     this.input.addEventListener('focus', function () {
@@ -26,6 +28,9 @@ class TextField {
       self.active = false
     })
     this.div.appendChild(this.input)
+    this.errorMessage = document.createElement('div')
+    this.errorMessage.className = 'errorMessage'
+    this.div.appendChild(this.errorMessage)
 
     this.label = label
   }
@@ -63,6 +68,7 @@ class TextField {
     var className = 'textField'
     if (this.active) className += ' active'
     if (this.value.length > 0) className += ' notEmpty'
+    if (this.errorMessage.innerHTML.length > 0) className += ' error'
     this.div.className = className
   }
 
