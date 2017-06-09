@@ -39,7 +39,7 @@ function getUser () {
       userPseudo.innerHTML = user.pseudo
       loginButton.style.display = 'none'
       logoutButton.style.display = 'inline-block'
-      if (editor) editor.connect()
+      if (typeof editor !== 'undefined') editor.connect()
     } else {
       userPseudo.innerHTML = ''
       loginButton.style.display = 'inline-block'
@@ -57,7 +57,7 @@ function logout () {
     userPseudo.innerHTML = ''
     loginButton.style.display = 'inline-block'
     logoutButton.style.display = 'none'
-    if (editor) editor.disconnect()
+    if (typeof editor !== 'undefined') editor.disconnect()
   }
   r.send()
 }

@@ -11,6 +11,21 @@ class Editor {
     this.connected = false
     this.connectedToEditSession = false
 
+    this._chatVisible = false
+    this.chat = document.getElementById('chat')
+    this.chatButton = document.getElementById('chatButton')
+    this.chatButton.addEventListener('click', function () {
+      self.chatVisible = !self.chatVisible
+    })
+    this.chatMessageList = document.getElementById('chatMessageList')
+    this.chatMessageInput = document.getElementById('chatMessageInput')
+    this.chatMessageInput.addEventListener('keyup', function (e) {
+      if (e.keyCode == 13 && self.chatMessageInput.value.length > 0) {
+        self.emit('message', self.chatMessageInput.value)
+        self.chatMessageInput.value = ''
+      }
+    })
+
     this.pcmId = pcmId
     this.pcm = null
     this.productMathing = 0
@@ -84,6 +99,22 @@ class Editor {
     })
 
     this.loadPCM()
+  }
+
+  get chatVisible () {
+    return this._chatVisible
+  }
+
+  set chatVisible (value) {
+    this._chatVisible = value
+    if (this.chatVisible) {
+      this.chat.className = 'visible'
+      this.chatButton.innerHTML = 'close'
+      this.chatMessageInput.focus()
+    } else {
+      this.chat.className = ''
+      this.chatButton.innerHTML = 'chat'
+    }
   }
 
   get selectedCell () {
@@ -306,8 +337,12 @@ class Editor {
   }
 
   connect () {
+    if (this.server != null) return false
     var self = this
-    var token = /token=([^;]+)/.exec(document.cookie)[1] || null
+    var res = /token=([^;]+)/.exec(document.cookie)
+    var token = res != null
+      ? res[1]
+      : null
     if (token) {
       this.server = io.connect()
       this.server.on('connect', function () {
@@ -321,6 +356,13 @@ class Editor {
         console.log('disconnected from server')
         self.connected = self.connectedToSession = false
         self.cellEdit.className = 'disable'
+        self.chatMessageList.innerHTML += 'Disconnected<br>'
+        self.chatVisible = false
+        setTimeout(function () {
+          self.chat.style.display = 'none'
+          self.chatButton.style.display = 'none'
+        }, 200)
+        self.server = null
       })
       this.server.on('error', function (data) {
         alert('server send error:' + data)
@@ -328,6 +370,13 @@ class Editor {
       this.server.on('connectedToSession', function (data) {
         self.connectedToSession = true
         self.cellEdit.className = ''
+        self.chatMessageList.innerHTML += 'Connected<br>'
+        self.chat.style.display = 'block'
+        self.chatButton.style.display = 'block'
+      })
+      this.server.on('updateUsersList', function (data) {
+        console.log('userList')
+        console.log(data)
       })
       this.server.on('editCell', function (data) {
         var cell = self.pcm.productsById[data.productId].cellsById[data.id]
@@ -337,6 +386,9 @@ class Editor {
           self.cellEditInput.value = cell.value
           self.cellEditInput.style.width = (self.cellEdit.offsetWidth - 56 - self.cellEditType.offsetWidth - 5) + 'px'
         }
+      })
+      this.server.on('message', function (data) {
+        self.chatMessageList.innerHTML += data.pseudo + ': ' + data.message + '<br>'
       })
     }
   }

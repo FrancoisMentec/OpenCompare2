@@ -40,6 +40,7 @@ class EditSession {
     var self = this
 
     this.users.push(user)
+
     user.socket.on('editCell', function (data) {
       var cell = self.pcm.productsById[data.productId].cellsById[data.cellId]
       cell.value = data.value
@@ -48,6 +49,20 @@ class EditSession {
       self.updatePCM()
       self.broadcast('editCell', obj)
     })
+
+    user.socket.on('disconnect', function () {
+      self.users.splice(self.users.indexOf(user), 1)
+      self.updateUsersList()
+    })
+
+    user.socket.on('message', function (data) {
+      self.broadcast('message', {
+        pseudo: user.pseudo,
+        message: data
+      })
+    })
+
+    this.updateUsersList()
   }
 
   broadcast (action, data) {
@@ -61,5 +76,16 @@ class EditSession {
     this.db.updatePCM(this.pcm, function (err, res) {
       if (err) self.broadcast('error', err)
     })
+  }
+
+  updateUsersList () {
+    var list = []
+    for (var u = 0, lu = this.users.length; u < lu; u++) {
+      list.push({
+        _id: this.users[u]._id,
+        pseudo: this.users[u].pseudo
+      })
+    }
+    this.broadcast('updateUsersList', list)
   }
 }

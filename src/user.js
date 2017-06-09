@@ -21,6 +21,18 @@ module.exports = class User {
     return this.editSessionManager.db
   }
 
+  get _id () {
+    return this.user
+      ? this.user._id
+      : null
+  }
+
+  get pseudo () {
+    return this.user
+      ? this.user.pseudo
+      : null
+  }
+
   emit (action, data) {
     this.socket.emit(action, data)
   }
