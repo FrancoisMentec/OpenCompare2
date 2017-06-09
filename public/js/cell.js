@@ -16,9 +16,15 @@ class Cell {
     if (typeof data.featureId !== 'string') console.error('cell featureId is incorrect')
     this.featureId = data.featureId
 
+    if (browser) {
+      this.match = true // used for configurator / filter
+
+      this.div = document.createElement('div')
+      this.div.className = 'pcmCell'
+    }
+
     if (isFromDB) {
-      this._value = data.value
-      this.type = data.type
+      this.setValue(data.value, data.type)
     } else {
       this.value = data.value
     }
@@ -30,14 +36,6 @@ class Cell {
     this.unit = typeof data.unit === 'string'
       ? data.unit
       : 'undefined'
-
-    if (browser) {
-      this.match = true // used for configurator / filter
-
-      this.div = document.createElement('div')
-      this.div.className = 'pcmCell'
-      this.div.innerHTML = this.html
-    }
   }
 
   get value () {
@@ -45,30 +43,40 @@ class Cell {
   }
 
   set value (value) {
-    var type = typeof value
-    if (Array.isArray(value)) {
-      type = 'multiple'
-    } else if (type === 'object' || type === 'function') {
-      console.error('a value can\'t be of type object or function')
-    } else if (type === 'string') {
-      if (/^true$/i.test(value)) {
-        value = true
-        type = 'boolean'
-      } else if (/^false$/i.test(value)) {
-        value = false
-        type = 'boolean'
-      } else if (/^(\d+((,|\.)\d+)?|\d{1,3}(\ \d{3})*((,|\.)(\d{3}\ )*\d{1,3})?)$/.test(value)) { // match integer and real with , or . as decimal separator and space every 3 number
-        value = parseFloat(value.replace(',', '.').replace(/\ /g, ''))
-        type = 'number'
-      } else if (/^.+\.(jpg|jpeg|JPG|JPEG|gif|png|bmp|ico|svg)$/.test(value)) {
-        type = 'image'
-      } else if (isUrl(value)) {
-        type = 'url'
+    this.setValue(value)
+  }
+
+  setValue (value, type = null) {
+    if (type == null) {
+      type = typeof value
+      if (Array.isArray(value)) {
+        type = 'multiple'
+      } else if (type === 'object' || type === 'function') {
+        console.error('a value can\'t be of type object or function')
+      } else if (type === 'string') {
+        if (/^true$/i.test(value)) {
+          value = true
+          type = 'boolean'
+        } else if (/^false$/i.test(value)) {
+          value = false
+          type = 'boolean'
+        } else if (/^(\d+((,|\.)\d+)?|\d{1,3}(\ \d{3})*((,|\.)(\d{3}\ )*\d{1,3})?)$/.test(value)) { // match integer and real with , or . as decimal separator and space every 3 number
+          value = parseFloat(value.replace(',', '.').replace(/\ /g, ''))
+          type = 'number'
+        } else if (/^.+\.(jpg|jpeg|JPG|JPEG|gif|png|bmp|ico|svg)$/.test(value)) {
+          type = 'image'
+        } else if (isUrl(value)) {
+          type = 'url'
+        }
       }
     }
 
     this._value = value
     this.type = type
+
+    if (browser) {
+      this.div.innerHTML = this.html
+    }
   }
 
   get html () {

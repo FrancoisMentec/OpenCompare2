@@ -13,6 +13,7 @@ class Editor {
     this.productMathing = 0
     this.sortId = null
     this.sortOrder = null // INCREASE or DECREASE
+    this._selectedCell = null
 
     this.pcmName = document.getElementById('pcmName')
     this.pcmSource = document.getElementById('pcmSource')
@@ -34,13 +35,14 @@ class Editor {
     this.editorContent = document.getElementById('editorContent')
 
     this.pcmView = document.getElementById('pcmView')
-    this.pcmView.addEventListener('scroll', function (event) {
-      var top = self.pcmView.scrollTop
+    this.pcmDiv = document.getElementById('pcm')
+    this.pcmDiv.addEventListener('scroll', function (event) {
+      var top = self.pcmDiv.scrollTop
       self.pcmFeatures.style.top = top + 'px'
       self.pcmFeatures.className = top > 0
         ? 'scrolled'
         : ''
-      var left = self.pcmView.scrollLeft
+      var left = self.pcmDiv.scrollLeft
       self.fixedFeaturesName.style.left = self.fixedFeaturesColumn.style.left = left + 'px'
       self.configurator.className = self.fixedFeaturesName.className = self.fixedFeaturesColumn.className = left > 0
         ? 'scrolledRight'
@@ -62,7 +64,40 @@ class Editor {
     this.filters = []
     this.filtersByFeatureId = {}
 
+    /* cell edition */
+    this.cellEdit = document.getElementById('cellEdit')
+    this.cellEditType = document.getElementById('cellEditType')
+    this.cellEditInput = document.getElementById('cellEditInput')
+    this.cellEditInput.addEventListener('change', function () {
+      self.emit('editCell', {
+        productId: self.selectedCell.product.id,
+        cellId: self.selectedCell.id,
+        value: self.cellEditInput.value
+      })
+    })
+
     this.loadPCM()
+  }
+
+  get selectedCell () {
+    return this._selectedCell
+  }
+
+  set selectedCell (value) {
+    if (this.selectedCell) {
+      this.selectedCell.div.className = 'pcmCell'
+      if (value == null) this.pcmView.className = ''
+    } else {
+      this.pcmView.className = 'cellEditVisible'
+    }
+    this._selectedCell = value
+    if (this.selectedCell != null) {
+      this.selectedCell.div.className = 'pcmCell selected'
+      this.cellEditType.innerHTML = this.selectedCell.type
+      this.cellEditInput.value = this.selectedCell.value
+      this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5) + 'px'
+      this.cellEditInput.focus()
+    }
   }
 
   loadPCM () {
@@ -119,6 +154,18 @@ class Editor {
       self.filtersByFeatureId[feature.id] = filter
     }
 
+    // bind click to cells
+    for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
+      for (var c = 0, lc = this.pcm.products[p].cells.length; c < lc; c++) {
+        (function () {
+          var cell = self.pcm.products[p].cells[c]
+          cell.div.addEventListener('click', function () {
+            self.selectedCell = cell
+          })
+        }())
+      }
+    }
+
     // add features, products and filter to the DOM
     this.pcm.primaryFeature.fixed = true
     this.fixedFeaturesName.appendChild(this.pcm.primaryFeature.div)
@@ -151,23 +198,7 @@ class Editor {
       }())
     }
 
-    // Connect to edit session
-    var token = /token=([^;]+)/.exec(document.cookie)[1] || null
-    if (token) {
-      this.server = io.connect()
-      this.server.on('connect', function () {
-        self.server.emit('handshake', {
-          pcmId: self.pcmId,
-          token: token
-        })
-      })
-      this.server.on('error', function (data) {
-        alert('server send error:' + data)
-      })
-      this.server.on('connectedToSession', function (data) {
-        console.log('connected to edit session')
-      })
-    }
+    this.connect()
   }
 
   fixFeature (feature) {
@@ -265,5 +296,41 @@ class Editor {
       }
     }
     this.updateConfiguratorTitle()
+  }
+
+  connect () {
+    var self = this
+    var token = /token=([^;]+)/.exec(document.cookie)[1] || null
+    if (token) {
+      this.server = io.connect()
+      this.server.on('connect', function () {
+        self.server.emit('handshake', {
+          pcmId: self.pcmId,
+          token: token
+        })
+      })
+      this.server.on('error', function (data) {
+        alert('server send error:' + data)
+      })
+      this.server.on('connectedToSession', function (data) {
+        //console.log('connected to edit session')
+      })
+      this.server.on('editCell', function (data) {
+        var cell = self.pcm.productsById[data.productId].cellsById[data.id]
+        cell.setValue(data.value, data.type)
+        if (cell == self.selectedCell) {
+          self.cellEditType.innerHTML = cell.type
+          self.cellEditInput.value = cell.value
+          self.cellEditInput.style.width = (self.cellEdit.offsetWidth - 56 - self.cellEditType.offsetWidth - 5) + 'px'
+        }
+      })
+    }
+  }
+
+  emit (action, data) {
+    if (this.server == null) console.log('No server')
+    else {
+      this.server.emit(action, data)
+    }
   }
 }

@@ -108,6 +108,19 @@ class DB {
     }
   }
 
+  updatePCM (pcm, callback) {
+    var self = this
+
+    this.exec(function (err) {
+      if (err) callback(err)
+      else {
+        self.pcmCollection.updateOne({_id: pcm._id}, pcm.export(), function (err, res) {
+          callback(err, res)
+        })
+      }
+    })
+  }
+
   newUser (mail, pseudo, password, callback) {
     var self = this
 

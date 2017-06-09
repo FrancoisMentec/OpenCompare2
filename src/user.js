@@ -1,5 +1,5 @@
 module.exports = class User {
-  construct (socket, editSessionManager) {
+  constructor (socket, editSessionManager) {
     var self = this
 
     this.socket = socket

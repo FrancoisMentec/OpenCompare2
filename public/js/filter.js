@@ -44,7 +44,7 @@ class Filter {
       this.lower = this.feature.min
       this.upper = this.feature.max
 
-      this.lowerInput = new TextField('Min')
+      this.lowerInput = new TextField('Min', 'number')
       this.lowerInput.value = this.lower
       this.lowerInput.addEventListener('change', function () {
         var val = parseFloat(self.lowerInput.value)
@@ -62,7 +62,7 @@ class Filter {
         self.filterChanged()
       }
 
-      this.upperInput = new TextField('Max')
+      this.upperInput = new TextField('Max', 'number')
       this.upperInput.value = this.upper
       this.upperInput.addEventListener('change', function () {
         var val = parseFloat(self.upperInput.value)

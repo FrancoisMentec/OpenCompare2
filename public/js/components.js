@@ -126,11 +126,11 @@ class SliderRange {
     document.addEventListener('mousemove', function (e) {
       if (self.dragLower) {
         e.stopPropagation()
-        self.lower = ((e.pageX - self.div.getBoundingClientRect().left) / self.div.offsetWidth) * (self.max - self.min)
+        self.lower = ((e.pageX - self.div.getBoundingClientRect().left) / self.div.offsetWidth) * (self.max - self.min) + self.min
       }
       if (self.dragUpper) {
         e.stopPropagation()
-        self.upper = ((e.pageX - self.div.getBoundingClientRect().left) / self.div.offsetWidth) * (self.max - self.min)
+        self.upper = ((e.pageX - self.div.getBoundingClientRect().left) / self.div.offsetWidth) * (self.max - self.min) + self.min
       }
     })
     document.addEventListener('mouseleave', function (e) {
