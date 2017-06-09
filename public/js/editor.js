@@ -8,6 +8,9 @@ class Editor {
     var self = this
 
     this.server = null
+    this.connected = false
+    this.connectedToEditSession = false
+
     this.pcmId = pcmId
     this.pcm = null
     this.productMathing = 0
@@ -69,11 +72,15 @@ class Editor {
     this.cellEditType = document.getElementById('cellEditType')
     this.cellEditInput = document.getElementById('cellEditInput')
     this.cellEditInput.addEventListener('change', function () {
-      self.emit('editCell', {
-        productId: self.selectedCell.product.id,
-        cellId: self.selectedCell.id,
-        value: self.cellEditInput.value
-      })
+      if (self.connectedToSession) {
+        self.emit('editCell', {
+          productId: self.selectedCell.product.id,
+          cellId: self.selectedCell.id,
+          value: self.cellEditInput.value
+        })
+      } else {
+        alert('Your not connected to the edit sesion')
+      }
     })
 
     this.loadPCM()
@@ -304,16 +311,23 @@ class Editor {
     if (token) {
       this.server = io.connect()
       this.server.on('connect', function () {
+        self.connected = true
         self.server.emit('handshake', {
           pcmId: self.pcmId,
           token: token
         })
       })
+      this.server.on('disconnect', function () {
+        console.log('disconnected from server')
+        self.connected = self.connectedToSession = false
+        self.cellEdit.className = 'disable'
+      })
       this.server.on('error', function (data) {
         alert('server send error:' + data)
       })
       this.server.on('connectedToSession', function (data) {
-        //console.log('connected to edit session')
+        self.connectedToSession = true
+        self.cellEdit.className = ''
       })
       this.server.on('editCell', function (data) {
         var cell = self.pcm.productsById[data.productId].cellsById[data.id]
@@ -325,6 +339,10 @@ class Editor {
         }
       })
     }
+  }
+
+  disconnect () {
+    if (this.server && this.connected) this.server.disconnect()
   }
 
   emit (action, data) {
