@@ -49,15 +49,20 @@ class DB {
   getPCM (id, callback) {
     var self = this
 
-    this.exec(function (err) {
-      if (err) {
-        callback(err, null)
-      } else {
-        self.pcmCollection.findOne({_id: ObjectId(id)}, function (err, pcm) {
-          callback(err, pcm)
-        })
-      }
-    })
+    try {
+      id = ObjectId(id)
+      this.exec(function (err) {
+        if (err) {
+          callback(err, null)
+        } else {
+          self.pcmCollection.findOne({_id: id}, function (err, pcm) {
+            callback(err, pcm)
+          })
+        }
+      })
+    } catch (err) {
+      callback(err, null)
+    }
   }
 
   searchPCM (query, callback) {

@@ -385,3 +385,41 @@ button.material-icons {
   text-align: right;
   padding: 8px;
 }
+
+/* chips */
+.chips {
+  display: inline-block;
+  margin-right: 5px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 12px 0 12px;
+  border-radius: 16px;
+  background-color: #E0E0E0; /* gray 300 */
+}
+
+.chipsDelete {
+  transition: 0.2s;
+  display: inline-block;
+  position: relative;
+  left: 8px;
+  top: -1px;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 50%;
+  background-color: #009688; /* teal 500 */
+  color: #E0E0E0; /* gray 300 */
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.chipsDelete:hover {
+  background-color: #F44336; /* red 500 */
+}
+
+.chipsDelete::before {
+  content: 'close';
+  font-family: 'Material Icons';
+  font-weight: 900;
+}
