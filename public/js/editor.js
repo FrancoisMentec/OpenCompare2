@@ -12,12 +12,23 @@ class Editor {
     this.connectedToEditSession = false
 
     this._chatVisible = false
+    this.chatAutoscroll = true // auto scroll when new message
     this.chat = document.getElementById('chat')
     this.chatButton = document.getElementById('chatButton')
     this.chatButton.addEventListener('click', function () {
       self.chatVisible = !self.chatVisible
     })
+    this.chatTopBar = document.getElementById('chatTopBar')
     this.chatMessageList = document.getElementById('chatMessageList')
+    this.chatMessageList.addEventListener('scroll', function (e) {
+      self.chatAutoscroll = self.chatMessageList.scrollTop + self.chatMessageList.offsetHeight >= self.chatMessageList.scrollHeight
+      self.chatTopBar.className = self.chatMessageList.scrollTop > 0
+        ? 'scrolled'
+        : ''
+      self.chatMessageInput.className = self.chatMessageList.scrollTop + self.chatMessageList.offsetHeight < self.chatMessageList.scrollHeight
+        ? 'scrolledBottom'
+        : ''
+    })
     this.chatMessageInput = document.getElementById('chatMessageInput')
     this.chatMessageInput.addEventListener('keyup', function (e) {
       if (e.keyCode == 13 && self.chatMessageInput.value.length > 0) {
@@ -356,7 +367,6 @@ class Editor {
         console.log('disconnected from server')
         self.connected = self.connectedToSession = false
         self.cellEdit.className = 'disable'
-        self.chatMessageList.innerHTML += 'Disconnected<br>'
         self.chatVisible = false
         setTimeout(function () {
           self.chat.style.display = 'none'
@@ -370,13 +380,15 @@ class Editor {
       this.server.on('connectedToSession', function (data) {
         self.connectedToSession = true
         self.cellEdit.className = ''
-        self.chatMessageList.innerHTML += 'Connected<br>'
         self.chat.style.display = 'block'
         self.chatButton.style.display = 'block'
       })
       this.server.on('updateUsersList', function (data) {
-        console.log('userList')
-        console.log(data)
+        /*console.log('userList')
+        console.log(data)*/
+        self.chatTopBar.innerHTML = data.length > 1
+          ? data.length + ' people connected'
+          : 'You\'re alone :-('
       })
       this.server.on('editCell', function (data) {
         var cell = self.pcm.productsById[data.productId].cellsById[data.id]
@@ -388,7 +400,11 @@ class Editor {
         }
       })
       this.server.on('message', function (data) {
-        self.chatMessageList.innerHTML += data.pseudo + ': ' + data.message + '<br>'
+        self.chatMessageList.innerHTML += '<div class="chatMessage"><div class="chatMessagePseudo">' + data.pseudo + '</div>'
+          + '<div class="chatMessageContent">' + data.message + '</div></div>'
+        if (self.chatAutoscroll) {
+          self.chatMessageList.scrollTop = self.chatMessageList.scrollHeight
+        }
       })
     }
   }
