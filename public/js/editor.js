@@ -139,7 +139,26 @@ class Editor {
           self.cellEditInput.value = ''
         }
       }
+    })
 
+    /* pcm edition */
+    this.editAction = document.getElementById('editAction')
+
+    this.addProductButton = document.getElementById('addProductButton')
+    this.addProductButton.addEventListener('click', function () {
+      if (self.connectedToSession) {
+        self.emit('addProduct')
+      } else {
+        alert('Your not connected to the edit sesion')
+      }
+    })
+    this.addFeatureButton = document.getElementById('addFeatureButton')
+    this.addFeatureButton.addEventListener('click', function () {
+      if (self.connectedToSession) {
+        alert('Not implemented yet')
+      } else {
+        alert('Your not connected to the edit sesion')
+      }
     })
 
     this.loadPCM()
@@ -198,7 +217,7 @@ class Editor {
   set editType (value) {
     this._editType = value
     this.cellEditType.innerHTML = this.editType
-    //this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5) + 'px'
+    this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5) + 'px'
   }
 
   addEditChips (value) {
@@ -225,6 +244,8 @@ class Editor {
     })
     chips.appendChild(chipsDelete)
     this.cellEditInputWrap.insertBefore(chips, this.cellEditInput)
+    this.cellEditInput.style.width = 0
+    this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5 - this.cellEditInputWrap.offsetWidth + 200) + 'px'
   }
 
   removeAllEditChips () {
@@ -289,14 +310,7 @@ class Editor {
 
     // bind click to cells
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
-      for (var c = 0, lc = this.pcm.products[p].cells.length; c < lc; c++) {
-        (function () {
-          var cell = self.pcm.products[p].cells[c]
-          cell.div.addEventListener('click', function () {
-            self.selectedCell = cell
-          })
-        }())
-      }
+      this.bindProduct(this.pcm.products[p])
     }
 
     // add features, products and filter to the DOM
@@ -332,6 +346,22 @@ class Editor {
     }
 
     this.connect()
+  }
+
+  /**
+   * Bind user event to the product (click)
+   * @param {Product} product - the product
+   */
+  bindProduct (product) {
+    var self = this
+    for (var c = 0, lc = product.cells.length; c < lc; c++) {
+      (function () {
+        var cell = product.cells[c]
+        cell.div.addEventListener('click', function () {
+          self.selectedCell = cell
+        })
+      }())
+    }
   }
 
   fixFeature (feature) {
@@ -451,6 +481,7 @@ class Editor {
         console.log('disconnected from server')
         self.connected = self.connectedToSession = false
         self.cellEdit.className = 'disable'
+        self.editAction.style.display = 'none'
         self.chatVisible = false
         setTimeout(function () {
           self.chat.style.display = 'none'
@@ -464,6 +495,7 @@ class Editor {
       this.server.on('connectedToSession', function (data) {
         self.connectedToSession = true
         self.cellEdit.className = ''
+        self.editAction.style.display = 'inline-block'
         self.chat.style.display = 'block'
         self.chatButton.style.display = 'block'
       })
@@ -488,6 +520,9 @@ class Editor {
             self.cellEditInput.value = self.selectedCell.value
           }
         }
+      })
+      this.server.on('addProduct', function (product) {
+        self.bindProduct(self.pcm.addProduct(product, true))
       })
       this.server.on('message', function (data) {
         self.chatMessageList.innerHTML += '<div class="chatMessage"><div class="chatMessagePseudo">' + data.pseudo + '</div>'

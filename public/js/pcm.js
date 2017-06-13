@@ -71,13 +71,50 @@ class PCM {
     })
     //console.timeEnd('sort pcm')
 
-    //console.time('update columns')
+    this.updateView()
+  }
+
+  updateView () {
     if (browser) {
       for (var f = 0, lf = this.features.length; f < lf; f++) {
         this.features[f].updateColumn()
       }
     }
-    //console.timeEnd('update columns')
+  }
+
+  /**
+   * Add a new product create from data and return it
+   * @param {Object} data - An object that match product scheme
+   * @param {boolean} isFromDB - Is the product loaded from db (or server, doesn't compute type)
+   * @return {Product} the product created
+   */
+  addProduct (data = null, isFromDB = false) {
+    if (data == null) {
+      var id = 0
+      while (this.productsById['P' + id]) {
+        id++
+      }
+      id = 'P' + id
+      data = {
+        id: id,
+        cells: []
+      }
+      for (var f = 0, lf = this.features.length; f < lf; f++) {
+        data.cells.push({
+          id: 'C' + f,
+          featureId: this.features[f].id,
+          value: null
+        })
+      }
+    }
+
+    var product = new Product(data, this, isFromDB)
+    this.products.push(product)
+    this.productsById[product.id] = product
+
+    this.updateView()
+
+    return product
   }
 
   export (toDB = false) {

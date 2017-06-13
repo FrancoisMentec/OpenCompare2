@@ -8,7 +8,9 @@ function isMail (value) {
 
 function detectType (value) {
   var type = typeof value
-  if (Array.isArray(value)) {
+  if (value == null) {
+    type = 'undefined'
+  } else if (Array.isArray(value)) {
     type = 'multiple'
   } else if (type === 'object' || type === 'function') {
     console.error('a value can\'t be of type object or function')

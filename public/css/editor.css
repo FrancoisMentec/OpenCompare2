@@ -71,18 +71,39 @@
   top: -1px;
 }
 
+.actionGroup {
+  display: inline-block;
+  height: 100%;
+  border-right: 1px solid #BDBDBD;
+  padding: 0 5px 0 5px;
+}
+
 #editorTopBar button {
   height: 25px;
-  line-height: 25px;
+  line-height: 23px;
   border: 1px solid transparent;
   color: black;
   background-color: transparent;
   box-shadow: none;
+  padding: 0 5px 0 5px;
 }
 
 #editorTopBar button:hover {
   border-color: #BDBDBD;
   box-shadow: 0 0 2px rgba(0,0,0,0.24);
+}
+
+#editorTopBar button .material-icons {
+  position: relative;
+  top: -1px;
+}
+
+#editAction {
+  display: none;
+}
+
+#addProductButton, #addFeatureButton {
+  padding-left: 0 !important;
 }
 
 #showConfiguratorButton {

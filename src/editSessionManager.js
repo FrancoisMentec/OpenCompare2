@@ -41,15 +41,6 @@ class EditSession {
 
     this.users.push(user)
 
-    user.socket.on('editCell', function (data) {
-      var cell = self.pcm.productsById[data.productId].cellsById[data.cellId]
-      cell.value = data.value
-      var obj = cell.export()
-      obj.productId = cell.product.id
-      self.updatePCM()
-      self.broadcast('editCell', obj)
-    })
-
     user.socket.on('disconnect', function () {
       self.users.splice(self.users.indexOf(user), 1)
       self.updateUsersList()
@@ -60,6 +51,21 @@ class EditSession {
         pseudo: user.pseudo,
         message: data
       })
+    })
+
+    user.socket.on('editCell', function (data) {
+      var cell = self.pcm.productsById[data.productId].cellsById[data.cellId]
+      cell.value = data.value
+      var obj = cell.export()
+      obj.productId = cell.product.id
+      self.updatePCM()
+      self.broadcast('editCell', obj)
+    })
+
+    user.socket.on('addProduct', function () {
+      var product = self.pcm.addProduct().export()
+      self.updatePCM()
+      self.broadcast('addProduct', product)
     })
 
     this.updateUsersList()
