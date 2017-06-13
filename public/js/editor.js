@@ -100,17 +100,35 @@ class Editor {
     this.cellEditInput = document.getElementById('cellEditInput')
     this.cellEditInput.addEventListener('change', function () {
       if (self.connectedToSession) {
-        self.emit('editCell', {
-          productId: self.selectedCell.product.id,
-          cellId: self.selectedCell.id,
-          value: self.cellEditInput.value
-        })
+        if (self.editType !== 'multiple') {
+          self.emit('editCell', {
+            productId: self.selectedCell.product.id,
+            cellId: self.selectedCell.id,
+            value: self.cellEditInput.value
+          })
+        }
       } else {
         alert('Your not connected to the edit sesion')
       }
     })
     this.cellEditInput.addEventListener('keyup', function (e) {
-      self.editType = detectType(self.cellEditInput.value).type
+      if (self.editType !== 'multiple') {
+        self.editType = detectType(self.cellEditInput.value).type
+      } else if (e.keyCode === 13) {
+        if (self.cellEditInput.value.length > 0) {
+          if (self.connectedToSession) {
+            self.emit('editCell', {
+              productId: self.selectedCell.product.id,
+              cellId: self.selectedCell.id,
+              value: self.selectedCell.value.concat(self.cellEditInput.value)
+            })
+          } else {
+            alert('Your not connected to the edit sesion')
+          }
+          self.cellEditInput.value = ''
+        }
+      }
+
     })
 
     this.loadPCM()
@@ -140,9 +158,10 @@ class Editor {
     var self = this
 
     if (this.selectedCell) {
-      this.selectedCell.div.className = 'pcmCell'
+      this.selectedCell.div.className = 'pcmCell' // remove selected
+      this.removeAllEditChips()
       if (value == null) this.pcmView.className = ''
-    } else {
+    } else if (value) {
       this.pcmView.className = 'cellEditVisible'
     }
     this._selectedCell = value
@@ -150,17 +169,9 @@ class Editor {
       this.selectedCell.div.className = 'pcmCell selected'
       this.editType = this.selectedCell.type
       if (this.editType === 'multiple') {
+        this.cellEditInput.value = ''
         for (var i = 0, li = this.selectedCell.value.length; i < li; i++) {
-          var chips = document.createElement('div')
-          chips.className = 'chips'
-          chips.innerHTML = this.selectedCell.value[i]
-          var chipsDelete = document.createElement('div')
-          chipsDelete.className = 'chipsDelete'
-          chipsDelete.addEventListener('click', function () {
-            self.cellEditInputWrap.removeChild(chips)
-          })
-          chips.appendChild(chipsDelete)
-          this.cellEditInputWrap.insertBefore(chips, self.cellEditInput)
+          this.addEditChips(this.selectedCell.value[i])
         }
       } else {
         this.cellEditInput.value = this.selectedCell.value
@@ -177,6 +188,38 @@ class Editor {
     this._editType = value
     this.cellEditType.innerHTML = this.editType
     this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5) + 'px'
+  }
+
+  addEditChips (value) {
+    var self = this
+    var chips = document.createElement('div')
+    chips.className = 'chips'
+    chips.innerHTML = value
+    var chipsDelete = document.createElement('div')
+    chipsDelete.className = 'chipsDelete'
+    chipsDelete.addEventListener('click', function () {
+
+      if (self.connectedToSession) {
+        self.cellEditInputWrap.removeChild(chips)
+        var arr = self.selectedCell.value
+        arr.splice(arr.indexOf(value), 1)
+        self.emit('editCell', {
+          productId: self.selectedCell.product.id,
+          cellId: self.selectedCell.id,
+          value: arr
+        })
+      } else {
+        alert('Not connected to edit session')
+      }
+    })
+    chips.appendChild(chipsDelete)
+    this.cellEditInputWrap.insertBefore(chips, this.cellEditInput)
+  }
+
+  removeAllEditChips () {
+    while (this.cellEditInputWrap.firstChild !== this.cellEditInput) {
+      this.cellEditInputWrap.removeChild(this.cellEditInputWrap.firstChild)
+    }
   }
 
   loadPCM () {
@@ -425,7 +468,14 @@ class Editor {
         cell.setValue(data.value, data.type)
         if (cell == self.selectedCell) {
           self.editType = cell.type
-          self.cellEditInput.value = cell.value
+          if (self.editType === 'multiple') {
+            self.removeAllEditChips()
+            for (var i = 0, li = self.selectedCell.value.length; i < li; i++) {
+              self.addEditChips(self.selectedCell.value[i])
+            }
+          } else {
+            self.cellEditInput.value = self.selectedCell.value
+          }
         }
       })
       this.server.on('message', function (data) {
