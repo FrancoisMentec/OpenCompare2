@@ -30,6 +30,15 @@
   border-bottom-right-radius: 24px;
 }
 
+#chatButtonBadge {
+  transition: 0.2s;
+  transform: scale(0);
+}
+
+#chatButtonBadge.visible {
+  transform: scale(1);
+}
+
 #chatTopBar {
   width: 100%;
   height: 32px;

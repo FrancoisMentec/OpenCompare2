@@ -86,7 +86,9 @@ button.material-icons {
 
 .floatingButton {
   width: 48px;
+  min-width: 0;
   height: 48px;
+  padding: 0;
   border-radius: 50%;
   box-shadow: 0 3px 5px rgba(0,0,0,0.24);
 }
@@ -422,4 +424,21 @@ button.material-icons {
   content: 'close';
   font-family: 'Material Icons';
   font-weight: 900;
+}
+
+/* badge */
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 24px;
+  height: 24px;
+  line-height: 22px;
+  border: 1px solid #BDBDBD;
+  border-radius: 12px;
+  background-color: white;
+  color: black;
+  text-align: center;
+  font-family: Roboto-Regular;
+  font-size: 12px;
 }

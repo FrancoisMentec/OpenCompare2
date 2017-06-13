@@ -11,10 +11,14 @@ class Editor {
     this.connected = false
     this.connectedToEditSession = false
 
+    /* chat */
     this._chatVisible = false
+    this.chatUnreadMessage = 0
     this.chatAutoscroll = true // auto scroll when new message
     this.chat = document.getElementById('chat')
     this.chatButton = document.getElementById('chatButton')
+    this.chatButtonIcon = document.getElementById('chatButtonIcon')
+    this.chatButtonBadge = document.getElementById('chatButtonBadge')
     this.chatButton.addEventListener('click', function () {
       self.chatVisible = !self.chatVisible
     })
@@ -37,6 +41,7 @@ class Editor {
       }
     })
 
+    /* pcm */
     this.pcmId = pcmId
     this.pcm = null
     this.productMathing = 0
@@ -176,11 +181,14 @@ class Editor {
     this._chatVisible = value
     if (this.chatVisible) {
       this.chat.className = 'visible'
-      this.chatButton.innerHTML = 'close'
+      this.chatButtonIcon.innerHTML = 'close'
+      this.chatUnreadMessage = 0
+      this.chatButtonBadge.innerHTML = ''
+      this.chatButtonBadge.className = 'badge' // remove visible
       this.chatMessageInput.focus()
     } else {
       this.chat.className = ''
-      this.chatButton.innerHTML = 'chat'
+      this.chatButtonIcon.innerHTML = 'chat'
     }
   }
 
@@ -537,6 +545,11 @@ class Editor {
           + '<div class="chatMessageContent">' + data.message + '</div></div>'
         if (self.chatAutoscroll) {
           self.chatMessageList.scrollTop = self.chatMessageList.scrollHeight
+        }
+
+        if (!self.chatVisible) {
+          self.chatButtonBadge.innerHTML = ++self.chatUnreadMessage
+          self.chatButtonBadge.className = 'badge visible'
         }
       })
     }
