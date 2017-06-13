@@ -59,6 +59,7 @@
   padding: 5px;
   line-height: 1em;
   margin-right: 5px;
+  cursor: pointer;
 }
 
 #cellEditInputWrap {
@@ -73,6 +74,7 @@
 }
 
 #cellEditInput {
+  min-width: 200px;
   height: 100%;
   border: none;
   margin: 0;

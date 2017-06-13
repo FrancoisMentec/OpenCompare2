@@ -96,6 +96,17 @@ class Editor {
     /* cell edition */
     this.cellEdit = document.getElementById('cellEdit')
     this.cellEditType = document.getElementById('cellEditType')
+    this.cellEditType.addEventListener('click', function (e) {
+      if (self.selectedCell) {
+        if (self.selectedCell.type !== 'multiple') {
+          self.selectedCell.value = [self.selectedCell.value]
+          self.selectedCell = self.selectedCell
+        } else {
+          self.selectedCell.value = self.selectedCell.value[0] || ''
+          self.selectedCell = self.selectedCell
+        }
+      }
+    })
     this.cellEditInputWrap = document.getElementById('cellEditInputWrap')
     this.cellEditInput = document.getElementById('cellEditInput')
     this.cellEditInput.addEventListener('change', function () {
@@ -187,7 +198,7 @@ class Editor {
   set editType (value) {
     this._editType = value
     this.cellEditType.innerHTML = this.editType
-    this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5) + 'px'
+    //this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5) + 'px'
   }
 
   addEditChips (value) {
