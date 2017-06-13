@@ -95,6 +95,10 @@ class Editor {
 
     /* cell edition */
     this.cellEdit = document.getElementById('cellEdit')
+    this.closeCellEditButton = document.getElementById('closeCellEditButton')
+    this.closeCellEditButton.addEventListener('click', function () {
+      self.selectedCell = null
+    })
     this.cellEditType = document.getElementById('cellEditType')
     this.cellEditType.addEventListener('click', function (e) {
       if (self.selectedCell) {
@@ -461,6 +465,9 @@ class Editor {
     this.updateConfiguratorTitle()
   }
 
+  /**
+   * Connect to the edit session using socket.io and bind events
+   */
   connect () {
     if (this.server != null) return false
     var self = this
@@ -480,6 +487,7 @@ class Editor {
       this.server.on('disconnect', function () {
         console.log('disconnected from server')
         self.connected = self.connectedToSession = false
+        self.pcmView.className = '' // remove cellEditVisible
         self.cellEdit.className = 'disable'
         self.editAction.style.display = 'none'
         self.chatVisible = false
