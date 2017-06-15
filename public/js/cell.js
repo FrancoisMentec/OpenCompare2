@@ -46,6 +46,10 @@ class Cell {
     this.setValue(value)
   }
 
+  get feature () {
+    return this.product.pcm.featuresById[this.featureId]
+  }
+
   setValue (value, type = null) {
     if (type == null) {
       var res = detectType(value)

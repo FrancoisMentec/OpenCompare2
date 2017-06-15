@@ -30,6 +30,33 @@ class Filter {
     this.button.innerHTML += ' ' + this.feature.name
     this.content = document.createElement('div')
     this.content.className = 'filterContent'
+
+    this.buildFilter()
+  }
+
+  get type () {
+    return this.feature.type
+  }
+
+  get searchString () {
+    return this._searchString
+  }
+
+  set searchString (value) {
+    this._searchString = value
+    this.searchRegex = new RegExp(this.searchString, 'i')
+  }
+
+  /**
+   * Call it in the constructor and when feature change
+   */
+  buildFilter () {
+    var self = this
+
+    while (this.content.firstChild) {
+      this.content.removeChild(this.content.firstChild)
+    }
+
     this.content.innerHTML = 'Type : ' + this.type
     this.div.appendChild(this.content)
 
@@ -140,19 +167,6 @@ class Filter {
     } else { // Other
       this.content.innerHTML += '<br><br> Sorry can\'t filter on this type for now, it will be coming soon'
     }
-  }
-
-  get type () {
-    return this.feature.type
-  }
-
-  get searchString () {
-    return this._searchString
-  }
-
-  set searchString (value) {
-    this._searchString = value
-    this.searchRegex = new RegExp(this.searchString, 'i')
   }
 
   checkCheckboxesState (checked = true, not = false) {

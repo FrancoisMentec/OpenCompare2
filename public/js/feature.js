@@ -13,6 +13,43 @@ class Feature {
     if (typeof data.name !== 'string') console.error('feature name is incorrect')
     this.name = data.name
 
+    this.computeData(data, isFromDB)
+
+    if (browser) { // create div if in browser
+      this.fixed = false
+      this.div = document.createElement('div')
+      this.div.className = this.type === 'number'
+        ? 'pcmFeature alignRight'
+        : 'pcmFeature'
+      this.div.innerHTML = this.name
+      this.fixButton = document.createElement('button')
+      this.fixButton.className = 'flatButton material-icons'
+      this.fixButton.innerHTML = 'place'
+      this.div.appendChild(this.fixButton)
+
+      this.column = document.createElement('div')
+      this.column.className = this.type === 'number'
+        ? 'pcmColumn alignRight'
+        : 'pcmColumn'
+
+      this.updateColumn()
+    }
+  }
+
+  /**
+   * Compute data :
+   * - type : main type of the feature (ex: type = 'string')
+   * - types : number of every types (ex: types['string'] = 3)
+   * - values : all different values sorted (ex: values = ['a', 'b', 'c'])
+   * - occurences : number of occurences of every values (ex: occurences['a'] = 1)
+   * - min : minimum value if type is number, else null
+   * - max : maximum value if type is number, else null*
+   * @param {Object} data - constructor only!
+   * @param {boolean} isFromDB - constructor only!
+   */
+  computeData (data = null, isFromDB = false) {
+    var self = this
+
     this.types = {}
     this.type = isFromDB
       ? data.type
@@ -54,25 +91,13 @@ class Feature {
       return 0
     })
 
-    if (browser) { // create div if in browser
-      this.fixed = false
-      this.div = document.createElement('div')
-      this.div.className = 'pcmFeature'
-      this.div.innerHTML = this.name
-      this.fixButton = document.createElement('button')
-      this.fixButton.className = 'flatButton material-icons'
-      this.fixButton.innerHTML = 'place'
-      this.div.appendChild(this.fixButton)
-
-      this.column = document.createElement('div')
-      this.column.className = 'pcmColumn'
-
-      if (this.type === 'number') {
-        this.div.className += ' alignRight'
-        this.column.className += ' alignRight'
-      }
-
-      this.updateColumn()
+    if (browser && this.div) {
+      this.div.className = this.type === 'number'
+        ? 'pcmFeature alignRight'
+        : 'pcmFeature'
+      this.column.className = this.type === 'number'
+        ? 'pcmColumn alignRight'
+        : 'pcmColumn'
     }
   }
 
@@ -87,6 +112,9 @@ class Feature {
   }
 
   computeWidth () {
+    this.div.style.width = 'auto'
+    this.column.style.width = 'auto'
+
     var width = this.div.offsetWidth
 
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {

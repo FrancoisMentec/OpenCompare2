@@ -229,7 +229,10 @@ class Editor {
   set editType (value) {
     this._editType = value
     this.cellEditType.innerHTML = this.editType
-    this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5) + 'px'
+    this.cellEditInputWrap.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5 - 26) + 'px'
+    this.cellEditInput.style.width = this.editType === 'multiple'
+      ? '0'
+      : this.cellEditInputWrap.offsetWidth + 'px'
   }
 
   addEditChips (value) {
@@ -256,8 +259,6 @@ class Editor {
     })
     chips.appendChild(chipsDelete)
     this.cellEditInputWrap.insertBefore(chips, this.cellEditInput)
-    this.cellEditInput.style.width = 0
-    this.cellEditInput.style.width = (this.cellEdit.offsetWidth - 56 - this.cellEditType.offsetWidth - 5 - this.cellEditInputWrap.offsetWidth + 200) + 'px'
   }
 
   removeAllEditChips () {
@@ -525,6 +526,13 @@ class Editor {
       this.server.on('editCell', function (data) {
         var cell = self.pcm.productsById[data.productId].cellsById[data.id]
         cell.setValue(data.value, data.type)
+        cell.feature.computeData()
+        var filter = self.filtersByFeatureId[cell.featureId]
+        var matchAll = filter.matchAll
+        filter.buildFilter()
+        if (!matchAll) self.filterChanged(filter)
+        cell.feature.computeWidth()
+        if (cell.feature.fixed) self.computeFixedWidth()
         if (cell == self.selectedCell) {
           self.editType = cell.type
           if (self.editType === 'multiple') {

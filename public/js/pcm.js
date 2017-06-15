@@ -65,9 +65,13 @@ class PCM {
   sort (feature = this.primaryFeature, order = 1) {
     //console.time('sort pcm')
     this.products.sort(function (p1, p2) {
+      if (p1.cellsByFeatureId[feature.id].type !== p2.cellsByFeatureId[feature.id].type) {
+        if (p1.cellsByFeatureId[feature.id].type !== feature.type) return 1
+        if (p2.cellsByFeatureId[feature.id].type !== feature.type) return -1
+      }
       if (p1.cellsByFeatureId[feature.id].value < p2.cellsByFeatureId[feature.id].value) return -order
       if (p1.cellsByFeatureId[feature.id].value > p2.cellsByFeatureId[feature.id].value) return order
-      0
+      return 0
     })
     //console.timeEnd('sort pcm')
 
