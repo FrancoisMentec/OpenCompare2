@@ -89,7 +89,7 @@ class PCM {
   /**
    * Add a new product create from data and return it
    * @param {Object} data - An object that match product scheme
-   * @param {boolean} isFromDB - Is the product loaded from db (or server, doesn't compute type)
+   * @param {boolean} isFromDB - Is the product loaded from db (doesn't compute type)
    * @return {Product} the product created
    */
   addProduct (data = null, isFromDB = false) {
@@ -119,6 +119,54 @@ class PCM {
     this.updateView()
 
     return product
+  }
+
+  /**
+   * Add a new feature created from data and return it and corresponding cells
+   * @param {Object} data - An object that match feature scheme
+   * @param {boolean} isFromDB - Is the product loaded from db (doesn't compute type)
+   * @return {Object} the feature and cells created
+   */
+  addFeature (data) {
+    var cellsByProductId = {}
+    var feature = null
+
+    if (typeof data === 'string') { // data is the name of the feature (server side)
+      var featureId = 0
+      while (this.featuresById['F' + featureId]) featureId++
+
+      for (var p = 0, lp = this.products.length; p < lp; p++) {
+        var product = this.products[p]
+        var cellId = 0
+        while (product.cellsById['C' + cellId]) cellId++
+        var cellData = {
+          id: 'C' + cellId,
+          featureId: 'F' + featureId,
+          value: null
+        }
+        cellsByProductId[product.id] = product.addCell(cellData)
+      }
+
+      var featureData = {
+        id: 'F' + featureId,
+        name: data
+      }
+      feature = new Feature(featureData, this)
+      this.features.push(feature)
+      this.featuresById[feature.id] = feature
+    } else { // data contains feature and cells (client side)
+      for (var productId in data.cellsByProductId) {
+        cellsByProductId[productId] = this.productsById[productId].addCell(data.cellsByProductId[productId], true)
+      }
+      feature = new Feature(data.feature, this)
+      this.features.push(feature)
+      this.featuresById[feature.id] = feature
+    }
+
+    return {
+      feature: feature,
+      cellsByProductId: cellsByProductId
+    }
   }
 
   export (toDB = false) {

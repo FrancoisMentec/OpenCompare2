@@ -69,6 +69,19 @@ class EditSession {
       self.broadcast('addProduct', product)
     })
 
+    user.socket.on('addFeature', function (name) {
+      if (typeof name !== 'string' || name.length === 0) user.emit('error', 'feature name isn\'t a string')
+      else {
+        var res = self.pcm.addFeature(name)
+        self.updatePCM()
+        res.feature = res.feature.export()
+        for (var i in res.cellsByProductId) {
+          res.cellsByProductId[i] = res.cellsByProductId[i].export()
+        }
+        self.broadcast('addFeature', res)
+      }
+    })
+
     this.updateUsersList()
   }
 

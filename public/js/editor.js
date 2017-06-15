@@ -162,9 +162,23 @@ class Editor {
       }
     })
     this.addFeatureButton = document.getElementById('addFeatureButton')
+    this.addFeaturePopupContent = document.createElement('div')
+    this.addFeatureInput = new TextField('Name')
+    this.addFeatureInput.appendTo(this.addFeaturePopupContent)
+    this.addFeaturePopup = new Popup('Create a new feature', this.addFeaturePopupContent, {
+      'CANCEL': function () {
+        self.addFeaturePopup.hide()
+      },
+      'CREATE': function () {
+        self.emit('addFeature', self.addFeatureInput.value)
+        self.addFeatureInput.value = ''
+        self.addFeaturePopup.hide()
+      }
+    })
     this.addFeatureButton.addEventListener('click', function () {
       if (self.connectedToSession) {
-        alert('Not implemented yet')
+        self.addFeaturePopup.show()
+        self.addFeatureInput.focus()
       } else {
         alert('Your not connected to the edit sesion')
       }
@@ -315,10 +329,7 @@ class Editor {
 
     // create filters
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
-      var feature = this.pcm.features[f]
-      var filter = new Filter(self, feature)
-      this.filters.push(filter)
-      self.filtersByFeatureId[feature.id] = filter
+      this.createFilter(this.pcm.features[f])
     }
 
     // bind click to cells
@@ -334,28 +345,14 @@ class Editor {
     this.computeFixedWidth()
     this.configuratorContent.appendChild(this.filtersByFeatureId[this.pcm.primaryFeatureId].div)
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
-      (function () {
-        var feature = self.pcm.features[f]
-        if (feature.id != self.pcm.primaryFeatureId) {
-          self.pcmFeatures.appendChild(feature.div)
-          self.pcmProducts.appendChild(feature.column)
-          feature.computeWidth()
-          self.configuratorContent.appendChild(self.filtersByFeatureId[feature.id].div)
-        }
-
-        // bind click event to sort products
-        feature.div.addEventListener('click', function (e) {
-          if (e.button === 0) {
-            self.sort(feature.id)
-          }
-        })
-        feature.fixButton.addEventListener('click', function (e) {
-          e.stopPropagation()
-          e.preventDefault()
-          if (feature.fixed) self.unfixFeature(feature)
-          else self.fixFeature(feature)
-        })
-      }())
+      var feature = self.pcm.features[f]
+      this.bindFeature(feature)
+      if (feature.id != self.pcm.primaryFeatureId) {
+        self.pcmFeatures.appendChild(feature.div)
+        self.pcmProducts.appendChild(feature.column)
+        feature.computeWidth()
+        self.configuratorContent.appendChild(self.filtersByFeatureId[feature.id].div)
+      }
     }
 
     this.connect()
@@ -368,13 +365,48 @@ class Editor {
   bindProduct (product) {
     var self = this
     for (var c = 0, lc = product.cells.length; c < lc; c++) {
-      (function () {
-        var cell = product.cells[c]
-        cell.div.addEventListener('click', function () {
-          self.selectedCell = cell
-        })
-      }())
+      this.bindCell(product.cells[c])
     }
+  }
+
+  /**
+   * Bind user event to the cell (click)
+   * @param {Cell} cell - the cell
+   */
+  bindCell (cell) {
+    var self = this
+    cell.div.addEventListener('click', function () {
+      self.selectedCell = cell
+    })
+  }
+
+  /**
+   * Bind user event to the feature (sort, fix)
+   * @param {Feature} feature - the feature
+   */
+  bindFeature (feature) {
+    var self = this
+
+    feature.div.addEventListener('click', function (e) {
+      if (e.button === 0) {
+        self.sort(feature.id)
+      }
+    })
+
+    feature.fixButton.addEventListener('click', function (e) {
+      e.stopPropagation()
+      e.preventDefault()
+      if (feature.fixed) self.unfixFeature(feature)
+      else self.fixFeature(feature)
+    })
+  }
+
+  createFilter (feature) {
+    var filter = new Filter(this, feature)
+    this.filters.push(filter)
+    this.filtersByFeatureId[feature.id] = filter
+
+    return filter
   }
 
   fixFeature (feature) {
@@ -486,6 +518,7 @@ class Editor {
       : null
     if (token) {
       this.server = io.connect()
+
       this.server.on('connect', function () {
         self.connected = true
         self.server.emit('handshake', {
@@ -493,6 +526,7 @@ class Editor {
           token: token
         })
       })
+
       this.server.on('disconnect', function () {
         console.log('disconnected from server')
         self.connected = self.connectedToSession = false
@@ -506,9 +540,11 @@ class Editor {
         }, 200)
         self.server = null
       })
+
       this.server.on('error', function (data) {
         alert('server send error:' + data)
       })
+
       this.server.on('connectedToSession', function (data) {
         self.connectedToSession = true
         self.cellEdit.className = ''
@@ -516,6 +552,7 @@ class Editor {
         self.chat.style.display = 'block'
         self.chatButton.style.display = 'block'
       })
+
       this.server.on('updateUsersList', function (data) {
         /*console.log('userList')
         console.log(data)*/
@@ -523,6 +560,7 @@ class Editor {
           ? data.length + ' people connected'
           : 'You\'re alone :-('
       })
+
       this.server.on('editCell', function (data) {
         var cell = self.pcm.productsById[data.productId].cellsById[data.id]
         cell.setValue(data.value, data.type)
@@ -545,9 +583,24 @@ class Editor {
           }
         }
       })
+
       this.server.on('addProduct', function (product) {
         self.bindProduct(self.pcm.addProduct(product, true))
       })
+
+      this.server.on('addFeature', function (data) {
+        console.log(data)
+        data = self.pcm.addFeature(data)
+        self.bindFeature(data.feature)
+        self.pcmFeatures.appendChild(data.feature.div)
+        self.pcmProducts.appendChild(data.feature.column)
+        data.feature.computeWidth()
+        self.configuratorContent.appendChild(self.createFilter(data.feature).div)
+        for (var i in data.cellsByProductId) {
+          self.bindCell(data.cellsByProductId[i])
+        }
+      })
+
       this.server.on('message', function (data) {
         self.chatMessageList.innerHTML += '<div class="chatMessage"><div class="chatMessagePseudo">' + data.pseudo + '</div>'
           + '<div class="chatMessageContent">' + data.message + '</div></div>'

@@ -16,12 +16,7 @@ class Product {
     this.cellsById = {}
     this.cellsByFeatureId = {}
     for (var c in data.cells) {
-      var cellData = data.cells[c]
-      if (typeof cellData.id === 'undefined') cellData.id = c
-      var cell = new Cell(cellData, this, isFromDB)
-      this.cells.push(cell)
-      this.cellsById[cell.id] = cell
-      this.cellsByFeatureId[cell.featureId] = cell
+      this.addCell(data.cells[c], isFromDB)
     }
 
     if (browser) {
@@ -49,6 +44,20 @@ class Product {
           : 'none'
       }
     }
+  }
+
+  addCell (cellData, isFromDB = false) {
+    if (typeof cellData.id === 'undefined') {
+      var id = 0
+      while (this.cellsById['C' + id]) id++
+      cellData.id = 'C' + id
+    }
+    var cell = new Cell(cellData, this, isFromDB)
+    this.cells.push(cell)
+    this.cellsById[cell.id] = cell
+    this.cellsByFeatureId[cell.featureId] = cell
+
+    return cell
   }
 
   export () {

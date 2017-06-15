@@ -79,6 +79,10 @@ class TextField {
   addEventListener (eventName, listener) {
     this.input.addEventListener(eventName, listener)
   }
+
+  focus () {
+    this.input.focus()
+  }
 }
 
 /* slider range */
