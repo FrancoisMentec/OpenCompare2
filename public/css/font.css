@@ -108,3 +108,15 @@ h1 {
 .textSuccess {
   color: #4CAF50; /* green 500 */
 }
+
+.textPrimary {
+  color: #00796B; /* teal 500 */
+}
+
+.textSecondary {
+  color: #FF5722; /* deep orange 500 */
+}
+
+.textSecondaryCaption {
+  color: #FF7043; /* deep orange 400 */
+}

@@ -7,7 +7,7 @@
     <div id="searchBar">
       <a id="openCompareLogo" href="/">OpenCompare 2</a>
 			<div id="searchInputWrap">
-				<input id="searchInput" type="text" name="search" placeholder="Search for any data" onkeypress="searchKeyPress(event)"><!--
+				<input id="searchInput" type="text" name="search" placeholder="Search for any data" onkeypress="searchKeyPress(event)" autofocus><!--
 				--><button id="searchButton" class="flatButton material-icons" onclick="search()">search</button>
 			</div>
     </div><!--
@@ -26,8 +26,22 @@
 				<div data-for="pcm, key in root.pcms">
 					<div class="searchResult">
 						<a class="searchName" href="/pcm/!{pcm._id}">!{pcm.name}</a>
-						<div class="searchDescription" data-if="pcm.description != null">
-							!{pcm.description}
+						<div class="searchDescription">
+							<span data-if="pcm.author != null">
+								Author: <span class="textSecondaryCaption">!{pcm.author}</span><!--
+								--><span data-if="pcm.source != null || pcm.license != null">,</span>
+							</span>
+							<span data-if="pcm.source != null">
+								Source: <span class="textSecondaryCaption">!{pcm.source}</span><!--
+								--><span data-if="pcm.license != null && pcm.license.length > 0">,</span>
+							</span>
+							<span data-if="pcm.license != null && pcm.license.length > 0">
+								License: <span class="textSecondaryCaption">!{pcm.license}</span>
+							</span>
+							<br>
+							<span data-if="pcm.description != null">
+								!{pcm.description}
+							</span>
 						</div>
 					</div>
 				</div>
