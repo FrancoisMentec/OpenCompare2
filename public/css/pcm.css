@@ -244,6 +244,10 @@
   line-height: 48px;
 }
 
+.pcmCell:hover {
+  background-color: #E0F2F1; /* teal 50 */
+}
+
 .pcmCell.selected {
   color: white;
   background-color: #009688; /* Teal 500 */

@@ -59,7 +59,7 @@ class PCM {
   }
 
   get primaryFeature () {
-    return this.featuresById[this.primaryFeatureId]
+    return this.featuresById[this.primaryFeatureId] || null
   }
 
   sort (feature = this.primaryFeature, order = 1) {
@@ -162,6 +162,8 @@ class PCM {
       this.features.push(feature)
       this.featuresById[feature.id] = feature
     }
+
+    if (this.primaryFeatureId == null) this.primaryFeatureId = feature.id
 
     return {
       feature: feature,

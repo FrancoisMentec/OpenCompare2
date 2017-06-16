@@ -69,6 +69,8 @@ class Cell {
     var html = ''
 
     switch (this.type) {
+      case 'undefined':
+        break
       case 'string':
       case 'number':
       case 'boolean':

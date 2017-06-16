@@ -6,8 +6,10 @@
 
     <div id="searchBar">
       <a id="openCompareLogo" href="/">OpenCompare 2</a>
-      <input id="searchInput" type="text" name="search" placeholder="Search for any data" onkeypress="searchKeyPress(event)" value="!{root.search}">
-      <button id="searchButton" class="material-icons" onclick="search()">search</button>
+			<div id="searchInputWrap">
+				<input id="searchInput" type="text" name="search" placeholder="Search for any data" onkeypress="searchKeyPress(event)"><!--
+				--><button id="searchButton" class="flatButton material-icons" onclick="search()">search</button>
+			</div>
     </div><!--
 
 		--><div id="searchResults">

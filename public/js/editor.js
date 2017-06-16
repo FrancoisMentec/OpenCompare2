@@ -107,46 +107,52 @@ class Editor {
     this.cellEditType = document.getElementById('cellEditType')
     this.cellEditType.addEventListener('click', function (e) {
       if (self.selectedCell) {
+        var value = null
         if (self.selectedCell.type !== 'multiple') {
-          self.selectedCell.value = [self.selectedCell.value]
-          self.selectedCell = self.selectedCell
+          value = []
+          if (self.cellEditInput.value.length > 0) {
+            value = [self.cellEditInput.value]
+            self.cellEditInput.value = ''
+          }
         } else {
-          self.selectedCell.value = self.selectedCell.value[0] || ''
-          self.selectedCell = self.selectedCell
+          value = self.selectedCell.value.length > 0
+            ? self.selectedCell.value.join(', ')
+            : self.cellEditInput.value
         }
+        self.cellEditInput.focus()
+        self.emit('editCell', {
+          productId: self.selectedCell.product.id,
+          cellId: self.selectedCell.id,
+          value: value
+        })
       }
     })
     this.cellEditInputWrap = document.getElementById('cellEditInputWrap')
     this.cellEditInput = document.getElementById('cellEditInput')
-    this.cellEditInput.addEventListener('change', function () {
-      if (self.connectedToSession) {
-        if (self.editType !== 'multiple') {
-          self.emit('editCell', {
-            productId: self.selectedCell.product.id,
-            cellId: self.selectedCell.id,
-            value: self.cellEditInput.value
-          })
-        }
-      } else {
-        alert('Your not connected to the edit sesion')
-      }
-    })
     this.cellEditInput.addEventListener('keyup', function (e) {
-      if (self.editType !== 'multiple') {
-        self.editType = detectType(self.cellEditInput.value).type
-      } else if (e.keyCode === 13) {
-        if (self.cellEditInput.value.length > 0) {
-          if (self.connectedToSession) {
+      if (e.keyCode === 13) { // edit on enter
+        if (self.connectedToSession) {
+          if (self.editType !== 'multiple') { // edit not multiple
             self.emit('editCell', {
               productId: self.selectedCell.product.id,
               cellId: self.selectedCell.id,
-              value: self.selectedCell.value.concat(self.cellEditInput.value)
+              value: self.cellEditInput.value
             })
           } else {
-            alert('Your not connected to the edit sesion')
+            if (self.cellEditInput.value.length > 0) { // edit multiple
+              self.emit('editCell', {
+                productId: self.selectedCell.product.id,
+                cellId: self.selectedCell.id,
+                value: self.selectedCell.value.concat(self.cellEditInput.value)
+              })
+              self.cellEditInput.value = ''
+            }
           }
-          self.cellEditInput.value = ''
+        } else {
+          alert('Your not connected to the edit sesion')
         }
+      } else if (self.editType !== 'multiple') {
+        self.editType = detectType(self.cellEditInput.value).type
       }
     })
 
@@ -257,7 +263,6 @@ class Editor {
     var chipsDelete = document.createElement('div')
     chipsDelete.className = 'chipsDelete'
     chipsDelete.addEventListener('click', function () {
-
       if (self.connectedToSession) {
         self.cellEditInputWrap.removeChild(chips)
         var arr = self.selectedCell.value
@@ -338,12 +343,14 @@ class Editor {
     }
 
     // add features, products and filter to the DOM
-    this.pcm.primaryFeature.fixed = true
-    this.fixedFeaturesName.appendChild(this.pcm.primaryFeature.div)
-    this.fixedFeaturesColumn.appendChild(this.pcm.primaryFeature.column)
-    this.pcm.primaryFeature.computeWidth()
-    this.computeFixedWidth()
-    this.configuratorContent.appendChild(this.filtersByFeatureId[this.pcm.primaryFeatureId].div)
+    if (this.pcm.primaryFeature) {
+      this.pcm.primaryFeature.fixed = true
+      this.fixedFeaturesName.appendChild(this.pcm.primaryFeature.div)
+      this.fixedFeaturesColumn.appendChild(this.pcm.primaryFeature.column)
+      this.pcm.primaryFeature.computeWidth()
+      this.computeFixedWidth()
+      this.configuratorContent.appendChild(this.filtersByFeatureId[this.pcm.primaryFeatureId].div)
+    }
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
       var feature = self.pcm.features[f]
       this.bindFeature(feature)
@@ -477,18 +484,22 @@ class Editor {
     }
     this.sortId = featureId
 
-    if (this.sortOrder === INCREASE) {
-      this.pcm.featuresById[this.sortId].div.className += ' increase'
-    } else {
-      this.pcm.featuresById[this.sortId].div.className +=' decrease'
-    }
+    if (this.pcm.featuresById[this.sortId]) {
+      if (this.sortOrder === INCREASE) {
+        this.pcm.featuresById[this.sortId].div.className += ' increase'
+      } else {
+        this.pcm.featuresById[this.sortId].div.className +=' decrease'
+      }
 
-    this.pcm.sort(this.pcm.featuresById[this.sortId], this.sortOrder)
+      this.pcm.sort(this.pcm.featuresById[this.sortId], this.sortOrder)
+    }
   }
 
   updateConfiguratorTitle () {
-    this.configuratorTitle.innerHTML = this.productMathing + ' / ' + this.pcm.products.length +
-      ' (' + Math.round((this.productMathing / this.pcm.products.length) * 10000) / 100 + '%)'
+    this.configuratorTitle.innerHTML = this.pcm.products.length > 0
+      ? this.productMathing + ' / ' + this.pcm.products.length +
+        ' (' + Math.round((this.productMathing / this.pcm.products.length) * 10000) / 100 + '%)'
+      : 'PCM is empty'
   }
 
   filterChanged (filter) {
@@ -572,9 +583,9 @@ class Editor {
         cell.feature.computeWidth()
         if (cell.feature.fixed) self.computeFixedWidth()
         if (cell == self.selectedCell) {
+          self.removeAllEditChips()
           self.editType = cell.type
           if (self.editType === 'multiple') {
-            self.removeAllEditChips()
             for (var i = 0, li = self.selectedCell.value.length; i < li; i++) {
               self.addEditChips(self.selectedCell.value[i])
             }
@@ -589,7 +600,7 @@ class Editor {
       })
 
       this.server.on('addFeature', function (data) {
-        console.log(data)
+        //console.log(data)
         data = self.pcm.addFeature(data)
         self.bindFeature(data.feature)
         self.pcmFeatures.appendChild(data.feature.div)

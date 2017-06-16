@@ -10,6 +10,7 @@ var bodyParser = require('body-parser')
 var multer  = require('multer')
 var upload = multer({dest: 'uploads/'})
 
+var PCM = require('./public/js/pcm.js')
 var db = require('./src/db.js')
 var importer = require('./src/importer.js')
 var isMail = require('./public/js/typeDetection.js').isMail
@@ -70,6 +71,30 @@ app.get('/api/:id', function (req, res) {
 
 app.get('/pcm/:id', function (req, res) {
 	res.render('editor', {id: req.params.id})
+})
+
+app.post('/create', function (req, res) {
+	var err = ''
+	var pcmData = {
+		name: req.body.name,
+		source: req.body.source,
+		author: req.body.author,
+		license: req.body.license,
+		description: req.body.description
+	}
+
+	if (typeof pcmData.name !== 'string' || pcmData.name.length === 0) err += 'name missing'
+
+	if (err.length > 0) res.send({error: err})
+	else {
+		db.savePCM(new PCM(pcmData), function (err2, res2) {
+			if (err2) {
+				res.send({error: err2})
+			} else {
+				res.send({pcm: res2.insertedId})
+			}
+		})
+	}
 })
 
 app.post('/import', upload.single('file'), function (req, res) {

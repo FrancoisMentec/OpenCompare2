@@ -31,10 +31,14 @@ function importFromOpenCompare (id, callback) {
        responseString += data
      })
 
-     res.on('end', function() {
-       var pcm = JSON.parse(responseString)
-       pcm.source = 'https://opencompare.org/pcm/' + id
-       callback(null, new PCM(pcm))
+     res.on('end', function () {
+       try {
+         var pcm = JSON.parse(responseString)
+         pcm.source = 'https://opencompare.org/pcm/' + id
+         callback(null, new PCM(pcm))
+       } catch (err) {
+         callback(err, null)
+       }
      })
    })
 

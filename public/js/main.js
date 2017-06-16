@@ -65,6 +65,51 @@ function importPCM (file = false) {
   }
 }
 
+var createPCMPopup = null
+function createPCM () {
+  if (!createPCMPopup) {
+    var createPCMContent = document.createElement('div')
+    var createPCMName = new TextField('Name')
+    createPCMName.appendTo(createPCMContent)
+    var createPCMSource = new TextField('Source')
+    createPCMSource.appendTo(createPCMContent)
+    var createPCMAuthor = new TextField('Author')
+    createPCMAuthor.appendTo(createPCMContent)
+    var createPCMLicense = new TextField('License')
+    createPCMLicense.appendTo(createPCMContent)
+    var createPCMDescription = new TextField('Description', 'area')
+    createPCMDescription.appendTo(createPCMContent)
+    var createPCMError = document.createElement('div')
+    createPCMError.className = 'textError'
+    createPCMContent.appendChild(createPCMError)
+    createPCMPopup = new Popup('Create', createPCMContent, {
+      'CANCEL': function () {
+        createPCMPopup.hide()
+      },
+      'OK': function () {
+        var r = new XMLHttpRequest()
+        r.open('POST', '/create', true)
+        r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+        r.onreadystatechange = function () {
+          if (r.readyState != 4 || r.status != 200) return
+          var res = JSON.parse(r.responseText)
+          if (res.error) {
+            createPCMError.innerHTML = res.error
+          } else {
+            window.location = '/pcm/' + res.pcm
+          }
+        }
+        r.send('name=' + encodeURIComponent(createPCMName.value) +
+          '&source=' + encodeURIComponent(createPCMSource.value) +
+          '&author=' + encodeURIComponent(createPCMAuthor.value) +
+          '&license=' + encodeURIComponent(createPCMLicense.value) +
+          '&description=' + encodeURIComponent(createPCMDescription.value))
+      }
+    })
+  }
+  createPCMPopup.show()
+}
+
 function initDrop () {
   importDiv = document.getElementById('importDiv')
   importZone = document.getElementById('importZone')
@@ -87,7 +132,7 @@ function initDrop () {
   importZone.addEventListener('drop', function (e) {
     e.preventDefault()
     $(importDiv).fadeOut()
-    console.log(e)
+    //console.log(e)
     var dt = e.dataTransfer
     if (dt.items[0]) {
       if (dt.items[0].kind === 'file') {

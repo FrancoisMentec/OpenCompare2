@@ -7,10 +7,15 @@
     <div id="searchWrap">
       <h1>OpenCompare 2</h1>
       <div id="searchForm">
-        <input id="searchInput" type="text" name="search" placeholder="Search for any data" onkeypress="searchKeyPress(event)"><br><br>
-        <button id="searchButton" onclick="search()"><span class="material-icons">search</span> Search</button>
-				OR
+				<div id="searchInputWrap">
+        	<input id="searchInput" type="text" name="search" placeholder="Search for any data" onkeypress="searchKeyPress(event)"><!--
+        	--><button id="searchButton" class="flatButton material-icons" onclick="search()">search</button>
+				</div>
+				<br>
+				<br>
 				<button id="importButton" onclick="importPCM()"><span class="material-icons">cloud_upload</span> Import</button>
+				OR
+				<button id="createButton" onclick="createPCM()"><span class="material-icons">add</span> Create from scratch</button>
       </div>
     </div>
 		<div id="importDiv">
