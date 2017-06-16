@@ -1,0 +1,26 @@
+/*#chatButton, #chat {
+  display: none !important;
+}*/
+
+#chartButtons {
+  width: 100%;
+  height: 42px;
+}
+
+#chartContent {
+  width: 100%;
+  height: calc(100% - 42px);
+  overflow: hidden;
+}
+
+svg > text {
+  fill: #9E9E9E; /* gray 500 */
+}
+
+line {
+  stroke: #9E9E9E; /* gray 500 */
+}
+
+.node {
+  fill: #009688; /* teal 500 */
+}

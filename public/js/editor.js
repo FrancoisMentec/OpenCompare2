@@ -11,6 +11,28 @@ class Editor {
     this.connected = false
     this.connectedToEditSession = false
 
+    /* views */
+    this._view = null
+    this.views = {
+      pcm: document.getElementById('pcmView'),
+      chart: document.getElementById('chartView')
+    }
+
+    this.viewsButtons = {}
+    for (var view in this.views) {
+      (function () {
+        var _view = view
+        self.viewsButtons[_view] = document.getElementById(_view + 'ViewButton')
+        self.viewsButtons[_view].addEventListener('click', function () {
+          self.view = _view
+        })
+      })()
+    }
+
+    this.view = 'pcm'
+
+    this.chartFactory = new ChartFactory(this)
+
     /* chat */
     this._chatVisible = false
     this.chatUnreadMessage = 0
@@ -227,6 +249,22 @@ class Editor {
     })
 
     this.loadPCM()
+  }
+
+  get view () {
+    return this._view
+  }
+
+  set view (value) {
+    if (this.view != value) {
+      if (this.view) {
+        this.viewsButtons[this.view].className = ''
+        this.views[this.view].style.display = 'none'
+      }
+      this._view = value
+      this.viewsButtons[this.view].className = 'active'
+      this.views[this.view].style.display = 'block'
+    }
   }
 
   get chatVisible () {

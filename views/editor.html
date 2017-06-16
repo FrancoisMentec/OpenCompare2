@@ -19,9 +19,13 @@
       --><div id="editorBody">
         <div id="editorTopBar">
           <button id="showConfiguratorButton">Hide the configurator</button>
+					<div id="viewsAction" class="actionGroup"><!--
+					--><button id="pcmViewButton"><span class="material-icons">reorder</span>PCM</button>
+						<button id="chartViewButton"><span class="material-icons">show_chart</span>Chart</button><!--
+					--></div>
 					<div id="editAction" class="actionGroup"><!--
-					--><button id="editPCMButton"><span class="material-icons">edit</span>Edit</button><!--
-					--><button id="addProductButton"><span class="material-icons">add</span>Product</button>
+					--><button id="editPCMButton"><span class="material-icons">edit</span>Edit</button>
+						<button id="addProductButton"><span class="material-icons">add</span>Product</button>
 						<button id="addFeatureButton"><span class="material-icons">add</span>Feature</button><!--
 					--></div>
         </div><!--
@@ -49,7 +53,14 @@
 								--><div id="fixedFeaturesColumn"></div><!--
 								--></div><!--
 							--></div>
-            </div>
+            </div><!--
+						--><div id="chartView">
+								<div id="chartButtons">
+									<button id="productChartButton">Product Chart</button>
+								</div><!--
+							--><div id="chartContent">
+							</div>
+						</div>
           </div>
         </div>
       </div><!--
@@ -61,12 +72,14 @@
 		--></div>
     </div>
     <!-- Javascript -->
+		<script type="text/javascript" src="/js/d3.v4.min.js"></script>
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/js/cell.js"></script>
     <script type="text/javascript" src="/js/product.js"></script>
     <script type="text/javascript" src="/js/feature.js"></script>
     <script type="text/javascript" src="/js/pcm.js"></script>
 		<script type="text/javascript" src="/js/filter.js"></script>
+		<script type="text/javascript" src="/js/chartFactory.js"></script>
     <script type="text/javascript" src="/js/editor.js"></script>
     <script>
       var editor = new Editor('!{root.id}')
