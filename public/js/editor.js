@@ -190,6 +190,42 @@ class Editor {
       }
     })
 
+    /* pcm data edition */
+    this.editPCMButton = document.getElementById('editPCMButton')
+    this.editPCMButton.addEventListener('click', function () {
+      self.editPCMPopup.show()
+    })
+    this.editPCMContent = document.createElement('div')
+    this.editPCMName = new TextField('Name')
+    this.editPCMName.appendTo(this.editPCMContent)
+    this.editPCMSource = new TextField('Source')
+    this.editPCMSource.appendTo(this.editPCMContent)
+    this.editPCMAuthor = new TextField('Author')
+    this.editPCMAuthor.appendTo(this.editPCMContent)
+    this.editPCMLicense = new TextField('License')
+    this.editPCMLicense.appendTo(this.editPCMContent)
+    this.editPCMDescription = new TextField('Description', 'area')
+    this.editPCMDescription.appendTo(this.editPCMContent)
+    this.editPCMPopup = new Popup('Edit', this.editPCMContent, {
+      'CANCEL': function () {
+        self.editPCMPopup.hide()
+      },
+      'OK': function () {
+        if (self.connectedToSession) {
+          self.emit('editPCM', {
+            name: self.editPCMName.value,
+            source: self.editPCMSource.value,
+            author: self.editPCMAuthor.value,
+            license: self.editPCMLicense.value,
+            description: self.editPCMDescription.value
+          })
+          self.editPCMPopup.hide()
+        } else {
+          alert('Your not connected to the edit sesion')
+        }
+      }
+    })
+
     this.loadPCM()
   }
 
@@ -314,19 +350,8 @@ class Editor {
   pcmLoaded () {
     var self = this
 
-    // display pcm attributes
-    this.pcmName.innerHTML = this.pcm.name || 'No name'
+    this.updatePCMData()
 
-    this.pcmSource.innerHTML = this.pcm.source == null
-      ? 'unknown'
-      : isUrl(this.pcm.source)
-        ? '<a href="' + this.pcm.source + '" target="_blank">' + this.pcm.source + '</a>'
-        : this.pcm.source
-
-    this.pcmAuthor.innerHTML = this.pcm.author || 'unknown'
-    this.pcmLicense.innerHTML = this.pcm.license || 'unknown'
-
-    this.productMathing = this.pcm.products.length
     this.updateConfiguratorTitle()
 
     // sort pcm
@@ -363,6 +388,27 @@ class Editor {
     }
 
     this.connect()
+  }
+
+  updatePCMData () {
+    this.pcmName.innerHTML = this.pcm.name || 'No name'
+
+    this.pcmSource.innerHTML = this.pcm.source == null
+      ? 'unknown'
+      : isUrl(this.pcm.source)
+        ? '<a href="' + this.pcm.source + '" target="_blank">' + this.pcm.source + '</a>'
+        : this.pcm.source
+
+    this.pcmAuthor.innerHTML = this.pcm.author || 'unknown'
+    this.pcmLicense.innerHTML = this.pcm.license || 'unknown'
+
+    this.editPCMName.value = this.pcm.name
+    this.editPCMSource.value = this.pcm.source
+    this.editPCMAuthor.value = this.pcm.author
+    this.editPCMLicense.value = this.pcm.license
+    this.editPCMDescription.value = this.pcm.description
+
+    this.productMathing = this.pcm.products.length
   }
 
   /**
@@ -552,8 +598,8 @@ class Editor {
         self.server = null
       })
 
-      this.server.on('error', function (data) {
-        alert('server send error:' + data)
+      this.server.on('err', function (data) {
+        alert('Error: ' + data)
       })
 
       this.server.on('connectedToSession', function (data) {
@@ -610,6 +656,15 @@ class Editor {
         for (var i in data.cellsByProductId) {
           self.bindCell(data.cellsByProductId[i])
         }
+      })
+
+      this.server.on('editPCM', function (data) {
+        self.pcm.name = data.name
+        self.pcm.source = data.source
+        self.pcm.author = data.author
+        self.pcm.license = data.license
+        self.pcm.description = data.description
+        self.updatePCMData()
       })
 
       this.server.on('message', function (data) {

@@ -82,6 +82,19 @@ class EditSession {
       }
     })
 
+    user.socket.on('editPCM', function (data) {
+      if (typeof data.name !== 'string' || data.name.length === 0) user.emit('error', 'PCM name can\'t be null or empty')
+      else {
+        self.pcm.name = data.name
+        self.pcm.source = data.source
+        self.pcm.author = data.author
+        self.pcm.license = data.license
+        self.pcm.description = data.description
+        self.updatePCM()
+        self.broadcast('editPCM', data)
+      }
+    })
+
     this.updateUsersList()
   }
 

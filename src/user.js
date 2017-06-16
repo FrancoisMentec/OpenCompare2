@@ -34,6 +34,11 @@ module.exports = class User {
   }
 
   emit (action, data) {
-    this.socket.emit(action, data)
+    if (action === 'error') action = 'err'
+    try {
+      this.socket.emit(action, data)
+    } catch (err) {
+      console.error(err)
+    }
   }
 }
