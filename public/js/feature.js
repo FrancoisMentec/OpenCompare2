@@ -53,7 +53,7 @@ class Feature {
     this.types = {}
     this.type = isFromDB
       ? data.type
-      : null
+      : 'undefined'
     this.values = []
     this.occurrences = {}
     this.min = null
@@ -63,7 +63,7 @@ class Feature {
       if (typeof this.types[cell.type] === 'undefined') this.types[cell.type] = 1
       else this.types[cell.type]++
 
-      if (!isFromDB && (this.type == null || this.types[cell.type] > this.types[this.type])) this.type = cell.type
+      if (!isFromDB && (this.type == 'undefined' || (cell.type !== 'undefined' && this.types[cell.type] > this.types[this.type]))) this.type = cell.type
 
       if (cell.type === 'multiple') {
         for (var i = 0, li = cell.value.length; i < li; i++) {

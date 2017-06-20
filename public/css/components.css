@@ -442,3 +442,21 @@ button.material-icons {
   font-family: Roboto-Regular;
   font-size: 12px;
 }
+
+/* Select */
+select {
+  transition: 0.2s;
+  height: 32px;
+  padding: 0 5px 0 5px;
+  border: 1px solid #BDBDBD;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  background-color: white;
+  font-family: Roboto-Regular;
+  font-size: 14px;
+}
+
+select:hover {
+  background-color: #F5F5F5; /* gray 100 */
+}

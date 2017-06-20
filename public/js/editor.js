@@ -425,6 +425,8 @@ class Editor {
       }
     }
 
+    this.chartFactory.init()
+
     this.connect()
   }
 
@@ -599,6 +601,7 @@ class Editor {
       }
     }
     this.updateConfiguratorTitle()
+    this.chartFactory.updateChart()
   }
 
   /**
