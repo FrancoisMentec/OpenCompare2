@@ -24,5 +24,6 @@ line {
 }
 
 .node > circle {
-  fill: #009688; /* teal 500 */
+  stroke: #009688; /* teal 500 */
+  stroke-width: 1px;
 }

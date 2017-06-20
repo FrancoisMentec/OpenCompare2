@@ -1,6 +1,8 @@
 const CHART_PADDING = 80
 const HALF_CHART_PADDING = CHART_PADDING / 2
 const GRADUATION_PER_PIXEL = 0.02
+const TRANSITION_DURATION = 1000
+const MAX_NODE_SIZE = 15
 
 class ChartFactory {
   constructor (editor) {
@@ -188,10 +190,30 @@ class ChartFactory {
       //defs
 
       this.defs = this.svg.append('defs')
-      this.nodeClipPath = this.defs.append('clipPath')
+      /*this.nodeClipPath = this.defs.append('clipPath')
         .attr('id', 'nodeClipPath')
         .append('circle')
-          .attr('r', this.nodeSize)
+          .attr('r', this.nodeSize)*/
+      if (this.featureImage) {
+        this.images = this.defs.selectAll('pattern')
+          .data(this.pcm.products)
+          .enter().append('pattern')
+          .attr('id', function (p) {
+            return 'image' + p.id
+          })
+          .attr('patternUnits', 'objectBoundingBox')
+          .attr('width', '100%')
+          .attr('height', '100%')
+          .attr('viewBox', '0 0 1 1')
+          .attr('preserveAspectRatio', 'xMidYMid slice')
+          .append('image')
+          .attr('width', '1')
+          .attr('height', '1')
+          .attr('preserveAspectRatio', 'xMidYMid slice')
+          .attr('href', function (p) {
+            return p.cellsByFeatureId[self.featureImage.id].value
+          })
+      }
 
       // x
       this.xLine = this.svg.append('line')
@@ -279,17 +301,16 @@ class ChartFactory {
         var product = this.pcm.products[p]
         product.x = product.cellsByFeatureId[this.x.id].type === 'number'
           ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + HALF_CHART_PADDING
-          : -100
+          : -MAX_NODE_SIZE
         product.y = product.cellsByFeatureId[this.y.id].type === 'number'
           ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + HALF_CHART_PADDING
-          : -100
+          : this.height + MAX_NODE_SIZE
       }
 
       this.node = this.svg.selectAll('.node')
         .data(this.pcm.products)
         .enter().append('g')
         .attr('class', 'node')
-        .attr('clip-path', 'url(#nodeClipPath)')
         .attr('transform', function (p) {
           return 'translate(' + p.x + ',' + p.y + ')'
         })
@@ -301,19 +322,13 @@ class ChartFactory {
 
       this.circles = this.node.append('circle')
         .attr('r', this.nodeSize)
+        .attr('fill', function (p) {
+          return self.featureImage && p.cellsByFeatureId[self.featureImage.id].type === 'image'
+            ? 'url(#image' + p.id + ')'
+            : '#009688'
+        })
 
-      if (this.featureImage) {
-        this.images = this.node.append('image')
-          .attr('x', -this.nodeSize)
-          .attr('y', -this.nodeSize)
-          .attr('width', this.nodeSize * 2)
-          .attr('height', this.nodeSize * 2)
-          .attr('xlink:href', function (p) {
-            return p.cellsByFeatureId[self.featureImage.id].value
-          })
-      }
-
-      this.node.append('title')
+      this.titles = this.node.append('title')
         .text(function (p) {
           return self.pcm.primaryFeature.name + ': ' + p.cellsByFeatureId[self.pcm.primaryFeatureId].value + '\n'
             + self.feature1.name + ': ' + p.cellsByFeatureId[self.feature1.id].value + '\n'
@@ -337,25 +352,15 @@ class ChartFactory {
 
     if (this.chart === 'productChart') {
       if (updateNodeSize) {
-        this.nodeClipPath.attr('r', this.nodeSize)
-
-        this.circles.attr('x', -this.nodeSize)
-          .attr('y', -this.nodeSize)
-          .attr('width', this.nodeSize * 2)
-          .attr('height', this.nodeSize * 2)
-
-          if (this.featureImage) {
-            this.images.attr('x', -this.nodeSize)
-              .attr('y', -this.nodeSize)
-              .attr('width', this.nodeSize * 2)
-              .attr('height', this.nodeSize * 2)
-          }
+        this.circles.transition()
+          .duration(TRANSITION_DURATION)
+          .attr('r', this.nodeSize)
       }
 
       if (updateImage) {
-        this.images.attr('xlink:href', function (p) {
-            return p.cellsByFeatureId[self.featureImage.id].value
-          })
+        this.images.attr('href', function (p) {
+          return p.cellsByFeatureId[self.featureImage.id].value
+        })
       }
 
       if (updateFeature1 || updateFeature2) {
@@ -434,16 +439,28 @@ class ChartFactory {
 
         for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
           var product = this.pcm.products[p]
-          if (updateFeature1) product.x = product.cellsByFeatureId[this.x.id].type === 'number'
-            ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + HALF_CHART_PADDING
-            : -100
-          if (updateFeature2) product.y = product.cellsByFeatureId[this.y.id].type === 'number'
-            ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + HALF_CHART_PADDING
-            : -100
+          if (updateFeature1) {
+            product.x = product.cellsByFeatureId[this.x.id].type === 'number'
+              ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + HALF_CHART_PADDING
+              : -MAX_NODE_SIZE
+          }
+          if (updateFeature2) {
+            product.y = product.cellsByFeatureId[this.y.id].type === 'number'
+              ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + HALF_CHART_PADDING
+              : this.height + MAX_NODE_SIZE
+          }
         }
 
-        this.node.attr('transform', function (p) {
+        this.node.transition()
+          .duration(TRANSITION_DURATION)
+          .attr('transform', function (p) {
             return 'translate(' + p.x + ',' + p.y + ')'
+          })
+
+        this.titles.text(function (p) {
+            return self.pcm.primaryFeature.name + ': ' + p.cellsByFeatureId[self.pcm.primaryFeatureId].value + '\n'
+              + self.feature1.name + ': ' + p.cellsByFeatureId[self.feature1.id].value + '\n'
+              + self.feature2.name + ': ' + p.cellsByFeatureId[self.feature2.id].value
           })
       }
 
