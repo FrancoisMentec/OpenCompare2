@@ -19,6 +19,8 @@ class Product {
       this.addCell(data.cells[c], isFromDB)
     }
 
+    this._color = null // used in vizualisations
+
     if (browser) {
       this._show = true
     }
@@ -44,6 +46,28 @@ class Product {
           : 'none'
       }
     }
+  }
+
+  /**
+   * return a color based on the product id (computed once)
+   */
+  get color () {
+    if (this._color) return this._color
+
+    var hash = 1
+    for (var i = 0; i < this.id.length; i++) {
+       hash *= this.id.charCodeAt(i)
+    }
+
+    var c = (hash)
+        .toString(16)
+        .toUpperCase()
+    while (c.length < 6) {
+      c += c
+    }
+
+    this._color = '#' + c.substring(0, 6)
+    return this._color
   }
 
   addCell (cellData, isFromDB = false) {

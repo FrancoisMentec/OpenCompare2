@@ -264,6 +264,9 @@ class Editor {
       this._view = value
       this.viewsButtons[this.view].className = 'active'
       this.views[this.view].style.display = 'block'
+      if (this.view === 'chart' && this.chartFactory.chart == null) {
+        this.chartFactory.drawChart('productChart')
+      }
     }
   }
 

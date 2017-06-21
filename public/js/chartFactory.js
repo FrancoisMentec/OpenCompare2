@@ -1,4 +1,4 @@
-const CHART_PADDING = 40
+const CHART_PADDING = 50
 const GRADUATION_PER_PIXEL = 0.02
 const MINIMAL_GRADUATION_GAP_IN_PX = 40
 const TRANSITION_DURATION = 1000
@@ -21,17 +21,22 @@ class ChartFactory {
     this.featureImageDiv = document.getElementById('featureImage')
     this.featureImageSelect = document.getElementById('featureImageSelect')
     this.featureImageSelect.addEventListener('change', function (e) {
-      self.updateChart(false, true, false, false)
+      self.updateChart('image')
+    })
+    this.feature0Div = document.getElementById('feature0')
+    this.feature0Select = document.getElementById('feature0Select')
+    this.feature0Select.addEventListener('change', function (e) {
+      self.updateChart('feature0')
     })
     this.feature1Div = document.getElementById('feature1')
     this.feature1Select = document.getElementById('feature1Select')
     this.feature1Select.addEventListener('change', function (e) {
-      self.updateChart(false, false, true, false)
+      self.updateChart('feature1')
     })
     this.feature2Div = document.getElementById('feature2')
     this.feature2Select = document.getElementById('feature2Select')
     this.feature2Select.addEventListener('change', function (e) {
-      self.updateChart(false, false, false, true)
+      self.updateChart('feature2')
     })
 
     this.content = document.getElementById('chartContent')
@@ -40,7 +45,8 @@ class ChartFactory {
     this.chart = null
 
     this.charts = {
-      productChart: {}
+      productChart: {},
+      pieChart: {}
     }
 
     for (var chart in this.charts) {
@@ -60,21 +66,29 @@ class ChartFactory {
       fdiv.innerHTML = 'None'
       this.featureImageSelect.appendChild(fdiv)
     }
+    var f1 = false
+    var f2 = false
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
       var feature = this.pcm.features[f]
+
+      var fdiv = document.createElement('option')
+      fdiv.setAttribute('value', feature.id)
+      fdiv.innerHTML = feature.name
+
+      this.feature0Select.appendChild(fdiv)
+
       if (feature.type === 'number' && feature.min !== feature.max) {
-        var fdiv = document.createElement('option')
-        fdiv.setAttribute('value', feature.id)
-        fdiv.innerHTML = feature.name
-        this.feature1Select.appendChild(fdiv)
+        this.feature1Select.appendChild(fdiv.cloneNode(true))
         this.feature2Select.appendChild(fdiv.cloneNode(true))
-        if (this.feature1 == null) this.feature1Select.value = feature.id
-        else if (this.feature2 == null) this.feature2Select.value = feature.id
+        if (!f1) {
+          f1 = true
+          this.feature1Select.value = feature.id
+        } else if (!f2) {
+          f2 = true
+          this.feature2Select.value = feature.id
+        }
       } else if (feature.type === 'image') {
-        var fdiv = document.createElement('option')
-        fdiv.setAttribute('value', feature.id)
-        fdiv.innerHTML = feature.name
-        this.featureImageSelect.appendChild(fdiv)
+        this.featureImageSelect.appendChild(fdiv.cloneNode(true))
         if (this.featureImage == null) this.featureImageSelect.value = feature.id
       }
     }
@@ -109,7 +123,7 @@ class ChartFactory {
       ? value
       : parseFloat(value)
     this.nodeSizeSelect.value = this.nodeSize
-    this.updateChart(true, false, false, false)
+    this.updateChart('nodeSize')
   }
 
   get featureImage () {
@@ -118,11 +132,11 @@ class ChartFactory {
       : null
   }
 
-  /*set featureImage (value) {
-    this._featureImage = value
-    this.featureImageSelect.value = this.featureImage.id
-    this.updateChart(false, true, false, false)
-  }*/
+  get feature0 () {
+    return typeof this.pcm.featuresById[this.feature0Select.value] !== 'undefined'
+      ? this.pcm.featuresById[this.feature0Select.value]
+      : null
+  }
 
   get feature1 () {
     return typeof this.pcm.featuresById[this.feature1Select.value] !== 'undefined'
@@ -134,12 +148,6 @@ class ChartFactory {
     return this.feature1
   }
 
-  /*set feature1 (value) {
-    this._feature1 = value
-    this.feature1Select.value = this.feature1.id
-    this.updateChart(false, false, true, false)
-  }*/
-
   get feature2 () {
     return typeof this.pcm.featuresById[this.feature2Select.value] !== 'undefined'
       ? this.pcm.featuresById[this.feature2Select.value]
@@ -150,16 +158,31 @@ class ChartFactory {
     return this.feature2
   }
 
-  /*set feature2 (value) {
-    this._feature2 = value
-    this.feature2Select.value = this.feature2.id
-    this.updateChart(false, false, false, true)
-  }*/
-
-  cleanContent () {
-    while (this.content.firstChild) {
-      this.content.removeChild(this.content.firstChild)
+  stringToColor (str) {
+    if (typeof str !== 'string') str = '' + str
+    var hash = 1
+    for (var i = 0; i < str.length; i++) {
+       hash *= str.charCodeAt(i)
     }
+
+    var c = (hash)
+        .toString(16)
+        .toUpperCase()
+    while (c.length < 6) {
+      c += c
+    }
+
+    return '#' + c.substring(0, 6)
+  }
+
+  colorBrightness (color) {
+    var c = color.substring(1)      // strip #
+    var rgb = parseInt(c, 16)   // convert rrggbb to decimal
+    var r = (rgb >> 16) & 0xff  // extract red
+    var g = (rgb >>  8) & 0xff  // extract green
+    var b = (rgb >>  0) & 0xff  // extract blue
+
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b // per ITU-R BT.709
   }
 
   range (min, max, size, feature = null) {
@@ -220,21 +243,55 @@ class ChartFactory {
     return sum / cluster.length
   }
 
+  /**
+   * Show every div specified and hide other in option bar
+   * @param {string[]} arguments - An array of string
+   * ex: showDivs('feature1', 'featureImage')
+   */
+   showDivs () {
+     this.nodeSizeDiv.style.display = 'none'
+     this.featureImageDiv.style.display = 'none'
+     this.feature0Div.style.display = 'none'
+     this.feature1Div.style.display = 'none'
+     this.feature2Div.style.display = 'none'
+
+     for (var i = 0; i < arguments.length; i++) {
+       if (arguments[i] === 'nodeSize') this.nodeSizeDiv.style.display = 'inline-block'
+       else if (arguments[i] === 'featureImage') this.featureImageDiv.style.display = 'inline-block'
+       else if (arguments[i] === 'feature0') this.feature0Div.style.display = 'inline-block'
+       else if (arguments[i] === 'feature1') this.feature1Div.style.display = 'inline-block'
+       else if (arguments[i] === 'feature2') this.feature2Div.style.display = 'inline-block'
+     }
+   }
+
+  /**
+   * Clean chart content and create a new svg element
+   */
+  cleanContent () {
+    while (this.content.firstChild) {
+      this.content.removeChild(this.content.firstChild)
+    }
+    this.svgDiv = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    this.content.appendChild(this.svgDiv)
+    this.svgDiv.setAttribute('width', this.width)
+    this.svgDiv.setAttribute('height', this.height)
+    this.svg = d3.select(this.svgDiv)
+  }
+
   drawChart (chart) {
     var self = this
+
+    if (this.chart && this.chart != chart) this.charts[this.chart].button.className = ''
     if (typeof chart !== 'undefined') this.chart = chart
-    console.log('drawChart ' + this.chart)
+    this.charts[this.chart].button.className = 'active'
+
+    //console.log('drawChart ' + this.chart)
 
     this.cleanContent()
     this.drawn = true
 
-    if (this.chart === 'productChart') {
-      this.svgDiv = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-      this.content.appendChild(this.svgDiv)
-      this.svgDiv.setAttribute('width', this.width)
-      this.svgDiv.setAttribute('height', this.height)
-
-      this.svg = d3.select(this.svgDiv)
+    if (this.chart === 'productChart') { // Product Chart ------------------------------------------------------------------------
+      this.showDivs('nodeSize', 'featureImage', 'feature1', 'feature2')
 
       this.xMin = self.x.min - (self.x.max - self.x.min) * 0.05
       this.xMax = self.x.max + (self.x.max - self.x.min) * 0.05
@@ -243,12 +300,8 @@ class ChartFactory {
       this.yMax = self.y.max + (self.y.max - self.y.min) * 0.05
 
       //defs
-
       this.defs = this.svg.append('defs')
-      /*this.nodeClipPath = this.defs.append('clipPath')
-        .attr('id', 'nodeClipPath')
-        .append('circle')
-          .attr('r', this.nodeSize)*/
+
       if (this.featureImage) {
         this.images = this.defs.selectAll('pattern')
           .data(this.pcm.products)
@@ -279,7 +332,7 @@ class ChartFactory {
 
       this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1)
 
-      this. xGraduation = this.svg.selectAll('.xGraduations')
+      this.xGraduation = this.svg.selectAll('.xGraduations')
         .data(this.xGraduationsValues)
         .enter().append('line')
         .attr('x1', function (x) {
@@ -380,7 +433,7 @@ class ChartFactory {
         .attr('fill', function (p) {
           return self.featureImage && p.cellsByFeatureId[self.featureImage.id].type === 'image'
             ? 'url(#image' + p.id + ')'
-            : '#009688'
+            : p.color //'#009688'
         })
 
       this.titles = this.node.append('title')
@@ -389,12 +442,102 @@ class ChartFactory {
             + self.feature1.name + ': ' + p.cellsByFeatureId[self.feature1.id].value + '\n'
             + self.feature2.name + ': ' + p.cellsByFeatureId[self.feature2.id].value
         })
+    } else if (this.chart === 'pieChart') { // Pie Chart ------------------------------------------------------------------------
+      this.showDivs('feature0')
+
+      var values = []
+      var occurrences = {}
+      var total = 0
+
+      for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
+        var cell = this.pcm.products[p].cellsByFeatureId[this.feature0.id]
+
+        if (this.pcm.products[p].match) {
+          if (cell.type === 'multiple') {
+            for (var i = 0, li = cell.value.length; i < li; i++) {
+              total++
+              if (typeof occurrences[cell.value[i]] === 'undefined') {
+                values.push(cell.value[i])
+                occurrences[cell.value[i]] = 1
+              } else occurrences[cell.value[i]]++
+            }
+          } else {
+            total++
+            if (typeof occurrences[cell.value] === 'undefined') {
+              values.push(cell.value)
+              occurrences[cell.value] = 1
+            } else occurrences[cell.value]++
+          }
+        }
+      }
+
+      values.sort()
+
+      this.radius = Math.min(this.width, this.height) / 2 - 10
+
+      this.arc = d3.arc()
+        .outerRadius(self.radius)
+        .innerRadius(0)
+
+      this.labelArc = d3.arc()
+        .outerRadius(self.radius - 40)
+        .innerRadius(self.radius - 40)
+
+      this.pie = d3.pie()
+        .sort(null)
+        .value(function(d) { return occurrences[d] })
+
+      this.pieChart = this.svg.append('g')
+        .attr('class', 'pieChart')
+        .attr('transform', 'translate(' + this.width / 2 + ',' + this.height / 2 + ')')
+
+      this.node = self.pieChart.selectAll('.arc')
+        .data(self.pie(values))
+        .enter().append('g')
+        .attr('class', 'arc')
+
+      this.path = this.node.append('path')
+        .style('fill', function (d) { return d.color = self.stringToColor(d.data) })
+        .transition().delay(function (d, i) {
+          var sum = 0
+          for (var j = 0; j < i; j++) {
+            sum += occurrences[values[j]]
+          }
+          return sum * TRANSITION_DURATION / total
+        }).duration(function (d) {
+          return occurrences[d.data] * TRANSITION_DURATION / total
+        })
+        .attrTween('d', function (d) {
+      		var i = d3.interpolate(d.startAngle + 0.1, d.endAngle)
+      		return function (t) {
+      			d.endAngle = i(t)
+      			return self.arc(d)
+        	}
+  		  })
+
+      this.node.append('text')
+        .attr('transform', function (d) { return 'translate(' + self.labelArc.centroid(d) + ')' })
+        .attr('dy', '.35em')
+        .attr('fill', function (d) {
+          return self.colorBrightness(d.color) > 200
+            ? 'black'
+            : 'white'
+        })
+        .text(function (d) { return (d.endAngle - d.startAngle) * self.radius > 50
+          ? d.data
+          : ''
+         })
+
+      this.node.append('title')
+        .text(function (d) {
+          return self.feature0.name + ' : ' + d.data + ' (' + (Math.round(occurrences[d.data] * 10000 / total) / 100) + '%)'
+        })
     } else {
       this.drawn = false
     }
   }
 
-  updateChart (updateNodeSize = false, updateImage = false, updateFeature1 = false, updateFeature2 = false) {
+  updateChart (change = null) {
     var self = this
 
     //console.log('update : ' + updateNodeSize + ' ' + updateImage + ' ' + updateFeature1 + ' ' + updateFeature2)
@@ -406,27 +549,48 @@ class ChartFactory {
     }
 
     if (this.chart === 'productChart') {
-      if (updateNodeSize) {
+      if (change === 'nodeSize') {
         this.circles.transition()
           .duration(TRANSITION_DURATION)
           .attr('r', this.nodeSize)
       }
 
-      if (updateImage) {
+      if (change === 'image') {
         if (this.featureImage != null) {
-          this.images.attr('href', function (p) {
-            return p.cellsByFeatureId[self.featureImage.id].value
-          })
+          if (this.images) {
+            this.images.attr('href', function (p) {
+              return p.cellsByFeatureId[self.featureImage.id].value
+            })
+          } else {
+            this.images = this.defs.selectAll('pattern')
+              .data(this.pcm.products)
+              .enter().append('pattern')
+              .attr('id', function (p) {
+                return 'image' + p.id
+              })
+              .attr('patternUnits', 'objectBoundingBox')
+              .attr('width', '100%')
+              .attr('height', '100%')
+              .attr('viewBox', '0 0 1 1')
+              .attr('preserveAspectRatio', 'xMidYMid slice')
+              .append('image')
+              .attr('width', '1')
+              .attr('height', '1')
+              .attr('preserveAspectRatio', 'xMidYMid slice')
+              .attr('href', function (p) {
+                return p.cellsByFeatureId[self.featureImage.id].value
+              })
+          }
         }
         this.circles.attr('fill', function (p) {
             return self.featureImage && p.cellsByFeatureId[self.featureImage.id].type === 'image'
               ? 'url(#image' + p.id + ')'
-              : '#009688'
+              : p.color
           })
       }
 
-      if (updateFeature1 || updateFeature2) {
-        if (updateFeature1) {
+      if (change === 'feature1' || change === 'feature2') {
+        if (change === 'feature1') {
           this.xMin = self.x.min - (self.x.max - self.x.min) * 0.05
           this.xMax = self.x.max + (self.x.max - self.x.min) * 0.05
 
@@ -463,7 +627,7 @@ class ChartFactory {
           this.xName.text(this.x.name)
         }
 
-        if (updateFeature2) {
+        if (change === 'feature2') {
           this.yMin = self.y.min - (self.y.max - self.y.min) * 0.05
           this.yMax = self.y.max + (self.y.max - self.y.min) * 0.05
 
@@ -501,12 +665,12 @@ class ChartFactory {
 
         for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
           var product = this.pcm.products[p]
-          if (updateFeature1) {
+          if (change === 'feature1') {
             product.x = product.cellsByFeatureId[this.x.id].type === 'number'
               ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + CHART_PADDING
               : -MAX_NODE_SIZE
           }
-          if (updateFeature2) {
+          if (change === 'feature2') {
             product.y = product.cellsByFeatureId[this.y.id].type === 'number'
               ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + CHART_PADDING
               : this.height + MAX_NODE_SIZE
@@ -531,7 +695,6 @@ class ChartFactory {
           ? 'visible'
           : 'hidden'
       })
-
     } else {
       this.drawChart()
     }
