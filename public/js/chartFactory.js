@@ -1,8 +1,8 @@
-const CHART_PADDING = 80
-const HALF_CHART_PADDING = CHART_PADDING / 2
+const CHART_PADDING = 40
 const GRADUATION_PER_PIXEL = 0.02
+const MINIMAL_GRADUATION_GAP_IN_PX = 40
 const TRANSITION_DURATION = 1000
-const MAX_NODE_SIZE = 15
+const MAX_NODE_SIZE = 16
 
 class ChartFactory {
   constructor (editor) {
@@ -18,23 +18,20 @@ class ChartFactory {
       self.nodeSize = self.nodeSizeSelect.value
     })
 
-    this._featureImage = null
-    this._feature1 = null
-    this._feature2 = null
     this.featureImageDiv = document.getElementById('featureImage')
     this.featureImageSelect = document.getElementById('featureImageSelect')
     this.featureImageSelect.addEventListener('change', function (e) {
-      self.featureImage = self.pcm.featuresById[self.featureImageSelect.value]
+      self.updateChart(false, true, false, false)
     })
     this.feature1Div = document.getElementById('feature1')
     this.feature1Select = document.getElementById('feature1Select')
     this.feature1Select.addEventListener('change', function (e) {
-      self.feature1 = self.pcm.featuresById[self.feature1Select.value]
+      self.updateChart(false, false, true, false)
     })
     this.feature2Div = document.getElementById('feature2')
     this.feature2Select = document.getElementById('feature2Select')
     this.feature2Select.addEventListener('change', function (e) {
-      self.feature2 = self.pcm.featuresById[self.feature2Select.value]
+      self.updateChart(false, false, false, true)
     })
 
     this.content = document.getElementById('chartContent')
@@ -57,6 +54,12 @@ class ChartFactory {
   }
 
   init () {
+    {
+      var fdiv = document.createElement('option')
+      fdiv.setAttribute('value', 'null')
+      fdiv.innerHTML = 'None'
+      this.featureImageSelect.appendChild(fdiv)
+    }
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
       var feature = this.pcm.features[f]
       if (feature.type === 'number' && feature.min !== feature.max) {
@@ -65,14 +68,14 @@ class ChartFactory {
         fdiv.innerHTML = feature.name
         this.feature1Select.appendChild(fdiv)
         this.feature2Select.appendChild(fdiv.cloneNode(true))
-        if (this.feature1 == null) this.feature1 = feature
-        else if (this.feature2 == null) this.feature2 = feature
+        if (this.feature1 == null) this.feature1Select.value = feature.id
+        else if (this.feature2 == null) this.feature2Select.value = feature.id
       } else if (feature.type === 'image') {
         var fdiv = document.createElement('option')
         fdiv.setAttribute('value', feature.id)
         fdiv.innerHTML = feature.name
         this.featureImageSelect.appendChild(fdiv)
-        if (this.featureImage == null) this.featureImage = feature
+        if (this.featureImage == null) this.featureImageSelect.value = feature.id
       }
     }
   }
@@ -86,7 +89,7 @@ class ChartFactory {
   }
 
   get chartWidth () {
-    return this.width - CHART_PADDING
+    return this.width - CHART_PADDING * 2
   }
 
   get height () {
@@ -94,7 +97,7 @@ class ChartFactory {
   }
 
   get chartHeight () {
-    return this.height - CHART_PADDING
+    return this.height - CHART_PADDING * 2
   }
 
   get nodeSize () {
@@ -110,42 +113,48 @@ class ChartFactory {
   }
 
   get featureImage () {
-    return this._featureImage
+    return typeof this.pcm.featuresById[this.featureImageSelect.value] !== 'undefined'
+      ? this.pcm.featuresById[this.featureImageSelect.value]
+      : null
   }
 
-  set featureImage (value) {
+  /*set featureImage (value) {
     this._featureImage = value
     this.featureImageSelect.value = this.featureImage.id
     this.updateChart(false, true, false, false)
-  }
+  }*/
 
   get feature1 () {
-    return this._feature1
+    return typeof this.pcm.featuresById[this.feature1Select.value] !== 'undefined'
+      ? this.pcm.featuresById[this.feature1Select.value]
+      : null
   }
 
   get x () {
     return this.feature1
   }
 
-  set feature1 (value) {
+  /*set feature1 (value) {
     this._feature1 = value
     this.feature1Select.value = this.feature1.id
     this.updateChart(false, false, true, false)
-  }
+  }*/
 
   get feature2 () {
-    return this._feature2
+    return typeof this.pcm.featuresById[this.feature2Select.value] !== 'undefined'
+      ? this.pcm.featuresById[this.feature2Select.value]
+      : null
   }
 
   get y () {
     return this.feature2
   }
 
-  set feature2 (value) {
+  /*set feature2 (value) {
     this._feature2 = value
     this.feature2Select.value = this.feature2.id
     this.updateChart(false, false, false, true)
-  }
+  }*/
 
   cleanContent () {
     while (this.content.firstChild) {
@@ -153,16 +162,62 @@ class ChartFactory {
     }
   }
 
-  range (min, max, size) {
-    var step = (max - min) / (size * GRADUATION_PER_PIXEL)
+  range (min, max, size, feature = null) {
     var range = []
-    var n = min
-    while (n < max) {
-      range.push(n)
-      n += step
+    if (feature) { // clustering
+      var minimalGap = (max - min) * MINIMAL_GRADUATION_GAP_IN_PX / this.chartWidth
+      var clusters = []
+      for (var i = 0, li = feature.values.length; i < li; i++) {
+        if (typeof feature.values[i] === 'number') {
+          var j = 0
+          while (clusters[j] && clusters[j][0] < feature.values[i]) {
+            j++
+          }
+          clusters.splice(j, 0, [feature.values[i]])
+        }
+      }
+
+      var clustering = true
+      while (clustering) {
+        var index = -1
+        var gap = -1
+        for (var i = 0, li = clusters.length; i < li - 1; i++) {
+          var igap = this.clusterCenter(clusters[i+1]) - this.clusterCenter(clusters[i])
+          if (index == -1 || igap < gap) {
+              index = i
+              gap = igap
+          }
+        }
+
+        if (gap < minimalGap) {
+          clusters[index] = clusters[index].concat(clusters[index+1])
+          clusters.splice(index + 1, 1)
+        } else {
+          clustering = false
+        }
+      }
+
+      for (var i = 0, li = clusters.length; i < li; i++) {
+        range.push(this.clusterCenter(clusters[i]))
+      }
+    } else { // no clustering
+      var step = (max - min) / (size * GRADUATION_PER_PIXEL)
+      var n = min
+      while (n < max) {
+        range.push(n)
+        n += step
+      }
+      range.push(max)
     }
-    range.push(max)
     return range
+  }
+
+  clusterCenter (cluster) {
+    var sum = 0
+    for (var i = 0, li = cluster.length; i < li; i++) {
+      sum += cluster[i]
+    }
+    return sum / cluster.length
   }
 
   drawChart (chart) {
@@ -217,24 +272,24 @@ class ChartFactory {
 
       // x
       this.xLine = this.svg.append('line')
-        .attr('x1', HALF_CHART_PADDING)
-        .attr('y1', this.height - HALF_CHART_PADDING)
-        .attr('x2', this.width - HALF_CHART_PADDING)
-        .attr('y2', this.height - HALF_CHART_PADDING)
+        .attr('x1', CHART_PADDING)
+        .attr('y1', this.height - CHART_PADDING)
+        .attr('x2', this.width - CHART_PADDING)
+        .attr('y2', this.height - CHART_PADDING)
 
-      this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth)
+      this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1)
 
       this. xGraduation = this.svg.selectAll('.xGraduations')
         .data(this.xGraduationsValues)
         .enter().append('line')
         .attr('x1', function (x) {
-          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + HALF_CHART_PADDING
+          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
         })
-        .attr('y1', self.height - HALF_CHART_PADDING)
+        .attr('y1', self.height - CHART_PADDING)
         .attr('x2', function (x) {
-          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + HALF_CHART_PADDING
+          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
         })
-        .attr('y2', self.height - HALF_CHART_PADDING + 5)
+        .attr('y2', self.height - CHART_PADDING + 5)
 
       this.xGraduationText = this.svg.selectAll('.xGraduations')
         .data(this.xGraduationsValues)
@@ -244,9 +299,9 @@ class ChartFactory {
         })
         .attr('text-anchor', 'middle')
         .attr('x', function (x) {
-          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + HALF_CHART_PADDING
+          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
         })
-        .attr('y', self.height - HALF_CHART_PADDING + 15)
+        .attr('y', self.height - CHART_PADDING + 15)
         .style('font-size', '10px')
 
 
@@ -258,23 +313,23 @@ class ChartFactory {
 
       // y
       this.yLine = this.svg.append('line')
-        .attr('x1', HALF_CHART_PADDING)
-        .attr('y1', HALF_CHART_PADDING)
-        .attr('x2', HALF_CHART_PADDING)
-        .attr('y2', this.height - HALF_CHART_PADDING)
+        .attr('x1', CHART_PADDING)
+        .attr('y1', CHART_PADDING)
+        .attr('x2', CHART_PADDING)
+        .attr('y2', this.height - CHART_PADDING)
 
-      this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight)
+      this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight, this.feature2)
 
       this.yGraduation = this.svg.selectAll('.yGraduations')
         .data(this.yGraduationsValues)
         .enter().append('line')
-        .attr('x1', HALF_CHART_PADDING - 5)
+        .attr('x1', CHART_PADDING - 5)
         .attr('y1', function (y) {
-          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + HALF_CHART_PADDING
+          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
         })
-        .attr('x2', HALF_CHART_PADDING)
+        .attr('x2', CHART_PADDING)
         .attr('y2', function (y) {
-          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + HALF_CHART_PADDING
+          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
         })
 
       this.yGraduationText = this.svg.selectAll('.yGraduations')
@@ -284,9 +339,9 @@ class ChartFactory {
           return Math.round(y * 100) / 100
         })
         .attr('text-anchor', 'end')
-        .attr('x', HALF_CHART_PADDING - 6)
+        .attr('x', CHART_PADDING - 6)
         .attr('y', function (y) {
-          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + HALF_CHART_PADDING + 3
+          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING + 3
         })
         .style('font-size', '10px')
 
@@ -300,10 +355,10 @@ class ChartFactory {
       for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
         var product = this.pcm.products[p]
         product.x = product.cellsByFeatureId[this.x.id].type === 'number'
-          ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + HALF_CHART_PADDING
+          ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + CHART_PADDING
           : -MAX_NODE_SIZE
         product.y = product.cellsByFeatureId[this.y.id].type === 'number'
-          ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + HALF_CHART_PADDING
+          ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + CHART_PADDING
           : this.height + MAX_NODE_SIZE
       }
 
@@ -358,9 +413,16 @@ class ChartFactory {
       }
 
       if (updateImage) {
-        this.images.attr('href', function (p) {
-          return p.cellsByFeatureId[self.featureImage.id].value
-        })
+        if (this.featureImage != null) {
+          this.images.attr('href', function (p) {
+            return p.cellsByFeatureId[self.featureImage.id].value
+          })
+        }
+        this.circles.attr('fill', function (p) {
+            return self.featureImage && p.cellsByFeatureId[self.featureImage.id].type === 'image'
+              ? 'url(#image' + p.id + ')'
+              : '#009688'
+          })
       }
 
       if (updateFeature1 || updateFeature2) {
@@ -368,20 +430,20 @@ class ChartFactory {
           this.xMin = self.x.min - (self.x.max - self.x.min) * 0.05
           this.xMax = self.x.max + (self.x.max - self.x.min) * 0.05
 
-          this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth)
+          this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1)
 
           this.xGraduation.remove()
           this.xGraduation = this.svg.selectAll('.xGraduations')
             .data(this.xGraduationsValues)
             .enter().append('line')
             .attr('x1', function (x) {
-              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + HALF_CHART_PADDING
+              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
             })
-            .attr('y1', self.height - HALF_CHART_PADDING)
+            .attr('y1', self.height - CHART_PADDING)
             .attr('x2', function (x) {
-              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + HALF_CHART_PADDING
+              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
             })
-            .attr('y2', self.height - HALF_CHART_PADDING + 5)
+            .attr('y2', self.height - CHART_PADDING + 5)
 
           this.xGraduationText.remove()
           this.xGraduationText = this.svg.selectAll('.xGraduations')
@@ -392,9 +454,9 @@ class ChartFactory {
             })
             .attr('text-anchor', 'middle')
             .attr('x', function (x) {
-              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + HALF_CHART_PADDING
+              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
             })
-            .attr('y', self.height - HALF_CHART_PADDING + 15)
+            .attr('y', self.height - CHART_PADDING + 15)
             .style('font-size', '10px')
 
 
@@ -405,19 +467,19 @@ class ChartFactory {
           this.yMin = self.y.min - (self.y.max - self.y.min) * 0.05
           this.yMax = self.y.max + (self.y.max - self.y.min) * 0.05
 
-          this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight)
+          this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight, this.feature2)
 
           this.yGraduation.remove()
           this.yGraduation = this.svg.selectAll('.yGraduations')
             .data(this.yGraduationsValues)
             .enter().append('line')
-            .attr('x1', HALF_CHART_PADDING - 5)
+            .attr('x1', CHART_PADDING - 5)
             .attr('y1', function (y) {
-              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + HALF_CHART_PADDING
+              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
             })
-            .attr('x2', HALF_CHART_PADDING)
+            .attr('x2', CHART_PADDING)
             .attr('y2', function (y) {
-              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + HALF_CHART_PADDING
+              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
             })
 
           this.yGraduationText.remove()
@@ -428,9 +490,9 @@ class ChartFactory {
               return Math.round(y * 100) / 100
             })
             .attr('text-anchor', 'end')
-            .attr('x', HALF_CHART_PADDING - 6)
+            .attr('x', CHART_PADDING - 6)
             .attr('y', function (y) {
-              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + HALF_CHART_PADDING + 3
+              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING + 3
             })
             .style('font-size', '10px')
 
@@ -441,12 +503,12 @@ class ChartFactory {
           var product = this.pcm.products[p]
           if (updateFeature1) {
             product.x = product.cellsByFeatureId[this.x.id].type === 'number'
-              ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + HALF_CHART_PADDING
+              ? ((product.cellsByFeatureId[this.x.id].value - this.xMin) / (this.xMax - this.xMin)) * this.chartWidth + CHART_PADDING
               : -MAX_NODE_SIZE
           }
           if (updateFeature2) {
             product.y = product.cellsByFeatureId[this.y.id].type === 'number'
-              ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + HALF_CHART_PADDING
+              ? this.chartHeight - ((product.cellsByFeatureId[this.y.id].value - this.yMin) / (this.yMax - this.yMin)) * this.chartHeight + CHART_PADDING
               : this.height + MAX_NODE_SIZE
           }
         }
