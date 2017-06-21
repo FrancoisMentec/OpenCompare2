@@ -63,8 +63,7 @@ line {
 /* Pie Chart */
 
 .pieChart text {
-  font: 14px Roboto-Regular;
-  text-anchor: middle;
+  font: 13px Roboto-Regular;
 }
 
 .pieChart path {

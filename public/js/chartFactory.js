@@ -480,8 +480,8 @@ class ChartFactory {
         .innerRadius(0)
 
       this.labelArc = d3.arc()
-        .outerRadius(self.radius - 40)
-        .innerRadius(self.radius - 40)
+        .outerRadius(self.radius - 10)
+        .innerRadius(self.radius - 10)
 
       this.pie = d3.pie()
         .sort(null)
@@ -503,9 +503,9 @@ class ChartFactory {
           for (var j = 0; j < i; j++) {
             sum += occurrences[values[j]]
           }
-          return sum * TRANSITION_DURATION / total
+          return d._delay = sum * TRANSITION_DURATION / total
         }).duration(function (d) {
-          return occurrences[d.data] * TRANSITION_DURATION / total
+          return d._duration = occurrences[d.data] * TRANSITION_DURATION / total
         })
         .attrTween('d', function (d) {
       		var i = d3.interpolate(d.startAngle + 0.1, d.endAngle)
@@ -516,21 +516,42 @@ class ChartFactory {
   		  })
 
       this.node.append('text')
-        .attr('transform', function (d) { return 'translate(' + self.labelArc.centroid(d) + ')' })
+        .attr('transform', function (d) {
+          var angle = (d.startAngle + d.endAngle) * 57.2958 / 2
+          d._anchor = angle < 180
+            ? 'end'
+            : 'start'
+          angle = angle < 180
+            ? angle - 90
+            : angle + 90
+          return 'translate(' + self.labelArc.centroid(d) + ')'
+            + ', rotate(' + angle + ')'
+        })
         .attr('dy', '.35em')
         .attr('fill', function (d) {
-          return self.colorBrightness(d.color) > 200
+          return self.colorBrightness(d.color) > 180
             ? 'black'
             : 'white'
+        })
+        .attr('text-anchor', function (d) {
+          return d._anchor
         })
         .text(function (d) { return (d.endAngle - d.startAngle) * self.radius > 50
           ? d.data
           : ''
          })
+         .attr('opacity', '0')
+         .transition().delay(function (d) {
+           return d._delay
+         }).duration(function (d) {
+           return d._duration
+         }).attr('opacity', '1')
+
 
       this.node.append('title')
         .text(function (d) {
-          return self.feature0.name + ' : ' + d.data + ' (' + (Math.round(occurrences[d.data] * 10000 / total) / 100) + '%)'
+          return self.feature0.name + ' : ' + d.data + '\n'
+            + 'occurences : ' + occurrences[d.data] + ' (' + (Math.round(occurrences[d.data] * 10000 / total) / 100) + '%)'
         })
     } else {
       this.drawn = false
