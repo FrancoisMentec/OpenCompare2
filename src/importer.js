@@ -1,12 +1,16 @@
 var https = require('https')
 var parse = require('csv-parse')
 var fs = require('fs')
+var Parsoid = require('parsoid-jsapi')
 var PCM = require('../public/js/pcm.js')
 
 module.exports = function (src, callback) {
+  var regexRes = null
   if (typeof src === 'string') {
-    if ((src = /([a-z0-9]{24})/g.exec(src)) != null) {
-      importFromOpenCompare(src[0], callback)
+    if ((regexRes = /([a-z0-9]{24})/g.exec(src)) != null) {
+      importFromOpenCompare(regexRes[1], callback)
+    } else if ((regexRes = /(\w+).wikipedia.org\/wiki\/([^#\/]+)/.exec(src)) != null) {
+      importFromWikipedia(regexRes[1], regexRes[2], callback)
     } else {
       callback('Unknown import source', null)
     }
@@ -54,9 +58,9 @@ function importFromCSV (src, callback) {
     }
   })
   parser.on('error', function (err) {
-    console.log(err.message)
+    callback(err, null)
   })
-  parser.on ('finish', function () {
+  parser.on('finish', function () {
     var cellN = 0
     // create pcm data
     var data = {
@@ -100,4 +104,177 @@ function importFromCSV (src, callback) {
       parser.end()
     }
   })
+}
+
+function importFromWikipedia (lang, title, callback) {
+  var source = 'https://' + lang + '.wikipedia.org/wiki/' + title
+  var req = https.request('https://' + lang +'.wikipedia.org/w/api.php?action=query&format=json&export=true&titles=' + title, function (res) {
+     res.setEncoding('utf-8')
+     var responseString = ''
+
+     res.on('data', function(data) {
+       responseString += data
+     })
+
+     res.on('end', function () {
+       try {
+         var response = JSON.parse(responseString)
+         var found = false
+         for (var i in response.query.pages) {
+           if (i != '-1') {
+             found = true
+             break
+           }
+         }
+
+         if (found) {
+           Parsoid.parse(response.query.export['*'], { pdoc: true }).then(function (pdoc) {
+             var document = pdoc.document
+             fs.writeFileSync('/udd/fmentec/truc.html', document.innerHTML)
+             callback('wikipedia import not working atm', null)
+           }).catch(function (err) {
+             console.error(err)
+             callback(err, null)
+           })
+
+
+           /*(Promise.async(function*() {
+             try {
+             	var pdoc = yield Parsoid.parse(response.query.export['*'], { pdoc: true });
+             	var document = pdoc.document
+              fs.writeFileSync('/udd/fmentec/truc.html', document.innerHTML)
+              var pcms = []
+             	var tables = document.getElementsByTagName('table')
+             	for (var i = 0; i < tables.length; i++) {
+                var table = tables[i]
+                if (table.getElementsByTagName('table').length === 0) { // care to tableception
+                  // search title div
+                  var el = table.previousElementSibling
+                  while (el != null && !el.tagName.match(/^h\d$/i)) {
+                    el = el.previousElementSibling
+                  }
+
+                  // create pcm
+                  var pcm = {
+                    name: el != null
+                      ? el.textContent
+                      : response.query.normalized[0].to,
+                    license: 'CC BY-SA',
+                    source: el != null
+                      ? source + '#' + el.id
+                      : source,
+                    author: 'Wikipedia',
+                    features: [],
+                    products: []
+                  }
+
+               		var featuresFound = false
+               		var rows = table.getElementsByTagName('tr')
+                  var featureRow = null
+                  var numCellsOccurence = {}
+                  var averageNumCell = -1
+
+                  for (var r = 0; r < rows.length; r++) {
+                    var row = rows[r]
+                    row._numTh = row.getElementsByTagName('th').length
+                    row._cells = row.querySelectorAll('th,td')
+
+                    if (featureRow == null || row._numTh > featureRow._numTh) {
+                      featureRow = row
+                    }
+
+                    if (numCellsOccurence[row._cells.length]) numCellsOccurence[row._cells.length]++
+                    else numCellsOccurence[row._cells.length] = 1
+
+                    if (averageNumCell == -1 || numCellsOccurence[row._cells.length] > numCellsOccurence[averageNumCell]) {
+                      averageNumCell = row._cells.length
+                    }
+                  }
+
+                  // detect anomaly
+                  for (var r = 0; r < rows.length; r++) {
+                    var row = rows[r]
+                    if (row != featureRow && row._numCell < averageNumCell) {
+                      if (r > 0 && rows[r - 1]._cells.length >= averageNumCell) {
+                        for (var c = 0; c < rows[r - 1]._cells.length; c++) {
+                          var rowspan
+                          if (rows[r - 1]._cells[c].getAttribute('rowspan')
+                          && (rowspan = parseFloat(/\d+/.exec(rows[r - 1]._cells[c].getAttribute('rowspan'))[0])) > 1) {
+
+                          }
+                        }
+                      }
+                    }
+                  }
+
+               		for (var j = 0; j < rows.length; j++) {
+                    var cells = rows[j].querySelectorAll('th,td')
+               			if (featuresFound) { // Products
+                      var product = {
+                        id: 'P' + pcm.products.length,
+                        cells: []
+                      }
+                      var n = 0
+                      for (var k = 0; k < pcm.features.length; k++) {
+                        if (pcm.products.length > 0 && pcm.products[pcm.products.length - 1].cells[k].rowSpan > 1) {
+                          product.cells.push({
+                            id: 'C' + k,
+                            featureId: 'F' + k,
+                            value: pcm.products[pcm.products.length - 1].cells[k].value,
+                            rowSpan: pcm.products[pcm.products.length - 1].cells[k].rowSpan - 1
+                          })
+                        } else {
+                          //console.log('table '+i+' '+n+'/'+cells.length+' '+pcm.features.length)
+                          product.cells.push({
+                            id: 'C' + k,
+                            featureId: 'F' + k,
+                            value: cells[n].textContent.replace(/<\/?br\/?>/g, ' ').replace(/(^\s+|\s+$)/g, '').replace(/\s+/g, ' '),
+                            rowSpan: cells[n].getAttribute('rowspan') != null
+                              ? parseFloat(/\d+/.exec(cells[n].getAttribute('rowspan'))[0])
+                              : 1
+                          })
+                          n++
+                        }
+                 			}
+                      if (product.cells.length < pcm.features.length) console.log(product.cells.length)
+                      pcm.products.push(product)
+               			} else { // Features
+                      var n = 0
+                      for (var k = 0; k < cells.length; k++) {
+                        var colspan = cells[k].getAttribute('colspan')
+                          ? parseFloat(/\d+/.exec(cells[k].getAttribute('colspan'))[0])
+                          : 1
+                        while (colspan-- > 0) {
+                   				pcm.features.push({
+                            id: 'F' + n++,
+                            name: cells[k].textContent.replace(/(^\s+|\s+$)/g, '')
+                          })
+                        }
+                 			}
+               				featuresFound = true
+                      //console.log(pcm.features)
+               			}
+               		}
+                  if (pcm.features.length > 1 && pcm.products.length > 1) {
+               		   pcms.push(new PCM(pcm))
+                  }
+                }
+             	}
+              callback(null, pcms, source)
+            } catch (err) {
+              console.error(err)
+              callback(err, null)
+            }
+          }))()*/
+         } else {
+           callback('article ' + title + ' not found on wikipedia', null)
+         }
+       } catch (err) {
+         console.error(err)
+         callback(err, null)
+       }
+     })
+   })
+
+   req.end()
 }

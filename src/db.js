@@ -95,8 +95,25 @@ class DB {
     var self = this
 
     if (pcm._id != null) {
-      console.log('no way to modify existing pcm atm')
-    } else {
+      callback('use updatePCM to save a pcm', null)
+    } else if (Array.isArray(pcm)) { // insert many
+      for (var i = 0, li = pcm.length; i < li; i++) {
+        pcm[i] = pcm[i].export(true)
+      }
+      this.exec(function (err) {
+        if (err) {
+          if (typeof callback === 'function') callback(err, null)
+        } else {
+          self.pcmCollection.insertMany(pcm, function (err, res) {
+            if (err) {
+              console.error('Failed to insert a pcm', err)
+            }
+
+            if (typeof callback === 'function') callback(err, res)
+          })
+        }
+      })
+    } else { // insert one
       this.exec(function (err) {
         if (err) {
           if (typeof callback === 'function') callback(err, null)

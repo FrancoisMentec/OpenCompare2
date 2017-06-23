@@ -165,7 +165,7 @@ class Editor {
               self.emit('editCell', {
                 productId: self.selectedCell.product.id,
                 cellId: self.selectedCell.id,
-                value: self.selectedCell.value.concat(self.cellEditInput.value)
+                value: self.selectedCell.value.concat(self.cellEditInput.value.replace(/^\s+|\s+$/g, ''))
               })
               self.cellEditInput.value = ''
             }

@@ -253,6 +253,10 @@
   background-color: #009688; /* Teal 500 */
 }
 
+.pcmCell.selected a {
+  color: white;
+}
+
 .pcmCell img {
   width: auto;
   height: 40px;

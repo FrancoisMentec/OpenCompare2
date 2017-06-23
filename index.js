@@ -122,17 +122,27 @@ app.post('/import', upload.single('file'), function (req, res) {
 })
 
 app.get('/import/:src', function (req, res) {
-	importer(req.params.src, function (err, pcm) {
+	importer(req.params.src, function (err, pcm, source) {
 		if (err) {
 			res.render('error', {error: err})
 		} else {
-			db.savePCM(pcm, function (err, res2) {
-				if (err) {
-					res.render('error', {error: err})
-				} else {
-					res.redirect('/pcm/' + res2.insertedId)
-				}
-			})
+			if (Array.isArray(pcm)) {
+				db.savePCM(pcm, function (err, res2) {
+					if (err) {
+						res.render('error', {error: err})
+					} else {
+						res.redirect('/search/' + encodeURIComponent(source))
+					}
+				})
+			} else {
+				db.savePCM(pcm, function (err, res2) {
+					if (err) {
+						res.render('error', {error: err})
+					} else {
+						res.redirect('/pcm/' + res2.insertedId)
+					}
+				})
+			}
 		}
 	})
 })

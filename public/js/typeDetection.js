@@ -1,5 +1,5 @@
 function isUrl (value) {
-  return /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w?=\.-]*)*\/?$/.test(value)
+  return /^(https?:\/\/)?([\w-\.]+)\.([a-z\.]{2,})(\/.*)?$/.test(value)
 }
 
 function isMail (value) {
@@ -23,7 +23,7 @@ function detectType (value) {
     } else if (/^false$/i.test(value)) {
       value = false
       type = 'boolean'
-    } else if (/^(\d+((,|\.)\d+)?|\d{1,3}(\ \d{3})*((,|\.)(\d{3}\ )*\d{1,3})?)$/.test(value)) { // match integer and real with , or . as decimal separator and space every 3 number
+    } else if (/^\s*(\d+((,|\.)\d+)?|\d{1,3}(\ \d{3})*((,|\.)(\d{3}\ )*\d{1,3})?)\s*$/.test(value)) { // match integer and real with , or . as decimal separator and space every 3 number
       value = parseFloat(value.replace(',', '.').replace(/\ /g, ''))
       type = 'number'
     } else if (/^.+\.(jpg|jpeg|JPG|JPEG|gif|png|bmp|ico|svg)$/.test(value)) {
