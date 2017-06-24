@@ -18,6 +18,10 @@ Good Job can now open OpenCompare 2 in your browser at the adress [localhost:900
 
 ## Import data
 
+### From internet !
+Hey the amazing feature is **here** :  
+Copy paste any url in the search field on the homepage (ex: https://en.wikipedia.org/wiki/Eminem_discography) click on import, it will import every data matrices of the page.
+
 ### From [opencompare.org](https://opencompare.org/)
 Open a pcm and copy the link of the pcm (ex: [https://opencompare.org/pcm/5757b9be975a3c01a5e5b477](https://opencompare.org/pcm/5757b9be975a3c01a5e5b477)) inside the search field on the homepage and click on import. You don't need to copy the full link, any string that contains the id of the pcm (ex: 5757b9be975a3c01a5e5b477) will work.
 
