@@ -77,6 +77,7 @@ var htmlTableToMatrice = function (html, returnType = 'element') {
     for (var r = 0, lr = rows.length; r < lr; r++) {
       var row = rows[r]
       var matriceRow = []
+      var numberOfNonDuplicatedCell = 0
 
       // Handle rowspan (cell that cover multiple row)
       for (var c = 0; c < maxRowLength; c++) {
@@ -88,16 +89,20 @@ var htmlTableToMatrice = function (html, returnType = 'element') {
           ? row._cells[c - 1]
           : null
 
+        numberOfNonDuplicatedCell++
+
         if (upperCell && upperCell.getAttribute('rowspan') > 1) {
           var cell = upperCell.cloneNode(true)
           cell.setAttribute('rowspan', upperCell.getAttribute('rowspan') - 1)
           row._cells.splice(c, 0, cell)
-        } else if (!superFeatureAreDangerous && leftCell && leftCell.getAttribute('colspan') > 1) {
+        } else if (leftCell && leftCell.getAttribute('colspan') > 1) {
           var cell = leftCell.cloneNode(true)
           cell.setAttribute('colspan', leftCell.getAttribute('colspan') - 1)
           cell.setAttribute('rowspan', 1)
           row._cells.splice(c, 0, cell)
+          numberOfNonDuplicatedCell-- // The cell got duplicated
         }
+
         if (row._cells.length <= c) break
 
         if (returnType == 'element') {
@@ -111,10 +116,11 @@ var htmlTableToMatrice = function (html, returnType = 'element') {
         }
       }
 
-      if (superFeatureAreDangerous && name.length == 0 && row._cells.length == 1) name = row._cells[0].textContent.replace(/^\s+|\s+$/g, '')
+      if (superFeatureAreDangerous && name.length == 0 && numberOfNonDuplicatedCell == 1) name = row._cells[0].textContent.replace(/^\s+|\s+$/g, '')
 
-      if (row._cells.length == maxRowLength) {
-        superFeatureAreDangerous = false
+      if (numberOfNonDuplicatedCell == maxRowLength) superFeatureAreDangerous = false
+
+      if (!superFeatureAreDangerous && row._cells.length == maxRowLength) {
         array.push(matriceRow)
       }
     }
