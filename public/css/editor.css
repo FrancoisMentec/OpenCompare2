@@ -37,6 +37,9 @@
   line-height: 43px;
   font-family: Roboto-Black;
   font-size: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pcmAttributeTitle {

@@ -16,9 +16,9 @@
     "csv-parse": "^1.2.0",
     "express": "^4.15.3",
     "gaikan": "^2.0.2",
+    "jsdom": "^11.0.0",
     "mongodb": "^2.2.27",
     "multer": "^1.3.0",
-    "parsoid-jsapi": "0.0.1",
     "socket.io": "^2.0.2"
   }
 }

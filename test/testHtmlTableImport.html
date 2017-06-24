@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <meta charset="utf8">
+    <title>test html table import</title>
+  </head>
+  <body>
+    Open an html file :
+    <input type="file" id="file-input" />
+    <script src="../src/htmlTableToMatrice.js"></script>
+    <script>
+      var html = null
+
+      function readSingleFile(e) {
+        var file = e.target.files[0]
+        if (!file) {
+          return
+        }
+        var reader = new FileReader()
+        reader.onload = function (e) {
+          html = e.target.result
+          console.log(htmlTableToMatrice(html))
+        }
+        reader.readAsText(file)
+      }
+
+      document.getElementById('file-input').addEventListener('change', readSingleFile, false)
+    </script>
+  </body>
+</html>

@@ -413,8 +413,6 @@ class Editor {
       this.pcm.primaryFeature.fixed = true
       this.fixedFeaturesName.appendChild(this.pcm.primaryFeature.div)
       this.fixedFeaturesColumn.appendChild(this.pcm.primaryFeature.column)
-      this.pcm.primaryFeature.computeWidth()
-      this.computeFixedWidth()
       this.configuratorContent.appendChild(this.filtersByFeatureId[this.pcm.primaryFeatureId].div)
     }
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
@@ -423,14 +421,25 @@ class Editor {
       if (feature.id != self.pcm.primaryFeatureId) {
         self.pcmFeatures.appendChild(feature.div)
         self.pcmProducts.appendChild(feature.column)
-        feature.computeWidth()
         self.configuratorContent.appendChild(self.filtersByFeatureId[feature.id].div)
       }
     }
 
+    this.computeFeaturesWidth()
+
     this.chartFactory.init()
 
     this.connect()
+  }
+
+  /**
+   * Compute the width of every features
+   */
+  computeFeaturesWidth () {
+    for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
+      this.pcm.features[f].computeWidth()
+    }
+    this.computeFixedWidth()
   }
 
   updatePCMData () {

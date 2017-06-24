@@ -1,16 +1,17 @@
 var https = require('https')
 var parse = require('csv-parse')
 var fs = require('fs')
-var Parsoid = require('parsoid-jsapi')
 var PCM = require('../public/js/pcm.js')
+var htmlTableToMatrice = require('./htmlTableToMatrice.js')
+var isUrl = require('../public/js/typeDetection.js').isUrl
 
 module.exports = function (src, callback) {
   var regexRes = null
   if (typeof src === 'string') {
     if ((regexRes = /([a-z0-9]{24})/g.exec(src)) != null) {
       importFromOpenCompare(regexRes[1], callback)
-    } else if ((regexRes = /(\w+).wikipedia.org\/wiki\/([^#\/]+)/.exec(src)) != null) {
-      importFromWikipedia(regexRes[1], regexRes[2], callback)
+    } else if (isUrl(src)/*(regexRes = /(\w+).wikipedia.org\/wiki\/([^#\/]+)/.exec(src)) != null*/) {
+      importFromUrl(src, callback)
     } else {
       callback('Unknown import source', null)
     }
@@ -106,7 +107,80 @@ function importFromCSV (src, callback) {
   })
 }
 
-function importFromWikipedia (lang, title, callback) {
+/**
+ * Get a Node element and return a string value for pcm
+ * @param {NodeElement} el - the element
+ * @return {String} the value for the pcm
+ */
+function elementToValue (el) {
+  return el.textContent.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ')
+}
+
+function importFromUrl (url, callback) {
+  var req = https.request(url, function (res) {
+    res.setEncoding('utf-8')
+    var responseString = ''
+
+    res.on('data', function (data) {
+      responseString += data
+    })
+
+    res.on('end', function () {
+      try {
+        var matrices = htmlTableToMatrice(responseString, 'element')
+        var pcms = []
+        for (var m = 0, lm = matrices.length; m < lm; m++) {
+          var matrice = matrices[m]
+          if (matrice.array.length > 1) {
+            var pcm = {
+              name: matrice.name || 'No name',
+              source: url,
+              features: [],
+              products: []
+            }
+
+            for (var f = 0, lf = matrice.array[0].length; f < lf; f++) {
+              pcm.features.push({
+                id: 'F' + f,
+                name: elementToValue(matrice.array[0][f])
+              })
+            }
+
+            for (var p = 1, lp = matrice.array.length; p < lp; p++) {
+              var product = {
+                id: 'P' + (p - 1),
+                cells: []
+              }
+              for (var f = 0, lf = matrice.array[p].length; f < lf; f++) {
+                product.cells.push({
+                  id: 'C' + f,
+                  featureId: 'F' + f,
+                  value: elementToValue(matrice.array[p][f])
+                })
+              }
+              pcm.products.push(product)
+            }
+
+            pcms.push(new PCM(pcm))
+          }
+        }
+        callback(null, pcms, url)
+      } catch (err) {
+        console.error(err)
+        callback(err, null)
+      }
+    })
+  })
+
+  req.on('error', function (err) {
+    //console.error(err)
+    callback('Can\'t join adress ' + url)
+  })
+
+  req.end()
+}
+
+/*function importFromWikipedia (lang, title, callback) {
   var source = 'https://' + lang + '.wikipedia.org/wiki/' + title
   var req = https.request('https://' + lang +'.wikipedia.org/w/api.php?action=query&format=json&export=true&titles=' + title, function (res) {
      res.setEncoding('utf-8')
@@ -265,7 +339,7 @@ function importFromWikipedia (lang, title, callback) {
               console.error(err)
               callback(err, null)
             }
-          }))()*/
+          }))()
          } else {
            callback('article ' + title + ' not found on wikipedia', null)
          }
@@ -277,4 +351,4 @@ function importFromWikipedia (lang, title, callback) {
    })
 
    req.end()
-}
+}*/
