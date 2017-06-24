@@ -134,7 +134,9 @@ function importFromUrl (url, callback) {
           if (matrice.array.length > 1) {
             var pcm = {
               name: matrice.name || 'No name',
-              source: url,
+              source: matrice.id
+                ? url + '#' + matrice.id
+                : url,
               features: [],
               products: []
             }

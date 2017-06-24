@@ -36,6 +36,7 @@ var htmlTableToMatrice = function (html, returnType = 'element') {
     var rows = table.getElementsByTagName('tr')
     //var rowLengthOccurence = {}
     var maxRowLength = -1
+    var id = ''
     var name = ''
     var array = []
 
@@ -118,12 +119,31 @@ var htmlTableToMatrice = function (html, returnType = 'element') {
       }
     }
 
-    if (array.length > 0 && maxRowLength > 0) matrices.push({
-      name: name.length > 0
-        ? name
-        : null,
-      array: array
-    })
+    if (array.length > 0 && maxRowLength > 0) {
+      // Search for matrice name and id
+      if (name.length == 0) {
+        var el = table
+        while (el != null && !/h\d/i.test(el.tagName)) {
+          if (id.length == 0 && el.getAttribute('id')) id = el.getAttribute('id')
+          el = el.previousElementSibling || el.parentNode
+        }
+        if (el) {
+          name = el.textContent
+          if (id.length == 0 && (div = el.querySelector('[id]'))) id = div.getAttribute('id')
+        }
+      }
+
+      // Push matrice in result
+      matrices.push({
+        name: name.length > 0
+          ? name
+          : null,
+        id: id.length > 0
+          ? id
+          : null,
+        array: array
+      })
+    }
   }
 
   return matrices
