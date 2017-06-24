@@ -12,6 +12,7 @@ function importPCM (file = false) {
   if (!file) {
     var val = $('#searchInput').val()
     if (val.length > 0) {
+      $('#importLoading').fadeIn()
       window.location = '/import/' + encodeURIComponent(val)
     } else {
       var popup = new Popup('Import instruction',
@@ -41,6 +42,7 @@ function importPCM (file = false) {
     var importPopup = new Popup('Import', importContent, {'CANCEL': function () {
       importPopup.delete()
     }, 'IMPORT': function () {
+      $('#importLoading').fadeIn()
       var r = new XMLHttpRequest()
       r.open('POST', '/import', true)
       var formData = new FormData()
@@ -54,6 +56,7 @@ function importPCM (file = false) {
         if (r.readyState != 4 || r.status != 200) return
         var res = JSON.parse(r.responseText)
         if (res.error) {
+          $('#importLoading').fadeOut()
           errorDiv.innerHTML = res.error
         } else {
           window.location = '/pcm/' + res.pcm

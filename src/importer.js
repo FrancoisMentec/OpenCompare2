@@ -1,4 +1,5 @@
 var https = require('https')
+var http = require('http')
 var parse = require('csv-parse')
 var fs = require('fs')
 var PCM = require('../public/js/pcm.js')
@@ -112,12 +113,27 @@ function importFromCSV (src, callback) {
  * @param {NodeElement} el - the element
  * @return {String} the value for the pcm
  */
-function elementToValue (el) {
-  return el.textContent.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ')
+function elementToValue (el, src) {
+  var value = el.textContent.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ')
+
+  if (value.length == 0) {
+    if ((img = el.getElementsByTagName('img')).length > 0) value = img[0].getAttribute('src')
+    else if ((a = el.getElementsByTagName('a')).length > 0) value = a[0].getAttribute('href').startsWith('/')
+      ? /^((https?:\/\/)?([\w-\.]+)\.([a-z\.]{2,}))/.exec(src)[1] + a[0].getAttribute('href')
+      : a[0].getAttribute('href')
+  }
+
+  return value
 }
 
 function importFromUrl (url, callback) {
-  var req = https.request(url, function (res) {
+  var protocol = url.startsWith('https')
+    ? https
+    : http
+
+  if (url.endsWith('/')) url = url.slice(0, -1)
+
+  var req = protocol.request(url, function (res) {
     res.setEncoding('utf-8')
     var responseString = ''
 
@@ -144,7 +160,7 @@ function importFromUrl (url, callback) {
             for (var f = 0, lf = matrice.array[0].length; f < lf; f++) {
               pcm.features.push({
                 id: 'F' + f,
-                name: elementToValue(matrice.array[0][f])
+                name: elementToValue(matrice.array[0][f], url)
               })
             }
 
@@ -157,7 +173,7 @@ function importFromUrl (url, callback) {
                 product.cells.push({
                   id: 'C' + f,
                   featureId: 'F' + f,
-                  value: elementToValue(matrice.array[p][f])
+                  value: elementToValue(matrice.array[p][f], url)
                 })
               }
               pcm.products.push(product)
