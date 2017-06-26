@@ -337,3 +337,71 @@ class Popup {
     }
   }
 }
+
+/* Context menu */
+
+class ContextMenu {
+  constructor (actions) {
+    var self = this
+
+    this.div = document.createElement('div')
+    this.div.className = 'contextMenu'
+    document.body.appendChild(this.div)
+
+    document.body.addEventListener('click', function () {
+      if (self.visible) self.hide()
+    })
+
+    document.body.addEventListener('contextmenu', function () {
+      if (self.visible) self.hide()
+    })
+
+    this.content = document.createElement('div')
+    this.content.className = 'contextMenuContent'
+    this.div.appendChild(this.content)
+
+    this.actions = {}
+    for (var a in actions) {
+      (function(){
+        self.actions[a] = document.createElement('button')
+        self.actions[a].className = 'flatButton'
+        self.actions[a].innerHTML = a
+        self.actions[a].addEventListener('click', function (e) {
+          e.preventDefault()
+          e.stopPropagation()
+
+          actions[a]()
+          self.hide()
+        })
+        self.content.appendChild(self.actions[a])
+      })()
+    }
+
+    this.visible = false
+  }
+
+  hide () {
+    var self = this
+
+    $(this.div).animate({height: 0}, 200, function () {
+      self.visible = false
+      self.div.style.display = 'none'
+    })
+  }
+
+  show (x, y) {
+    var self = this
+
+    if (x < 0) x = 0
+    if (x + this.content.offsetWidth > window.innerWidth) x = window.innerWidth - this.content.offsetWidth
+    if (y < 0) y = 0
+    if (y + this.content.offsetHeight > window.innerHeight) x = window.inneinnerHeightrWidth - this.content.offsetHeight
+
+    this.div.style.left = x + 'px'
+    this.div.style.top = y + 'px'
+    this.div.style.display = 'inline-block'
+    $(this.div).animate({height: this.content.offsetHeight}, 200, function () {
+      self.visible = true
+    })
+  }
+}

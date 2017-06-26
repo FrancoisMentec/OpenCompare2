@@ -77,6 +77,9 @@ class ChartFactory {
 
       this.feature0Select.appendChild(fdiv)
 
+      this.featureImageSelect.appendChild(fdiv.cloneNode(true))
+      if (feature.type === 'image' && this.featureImage == null) this.featureImageSelect.value = feature.id
+
       if (feature.type === 'number' && feature.min !== feature.max) {
         this.feature1Select.appendChild(fdiv.cloneNode(true))
         this.feature2Select.appendChild(fdiv.cloneNode(true))
@@ -87,9 +90,6 @@ class ChartFactory {
           f2 = true
           this.feature2Select.value = feature.id
         }
-      } else if (feature.type === 'image') {
-        this.featureImageSelect.appendChild(fdiv.cloneNode(true))
-        if (this.featureImage == null) this.featureImageSelect.value = feature.id
       }
     }
   }
@@ -158,11 +158,20 @@ class ChartFactory {
     return this.feature2
   }
 
-  stringToColor (str) {
-    if (typeof str !== 'string') str = '' + str
+  valueToColor (value) {
+    if (typeof value === 'object') {
+      _value = ''
+      for (var i = 0, li = value.length; i < li; i++) {
+        _value += value[i]
+      }
+      value = _value
+    } else if (typeof value !== 'string') {
+      value = '' + value
+    }
+
     var hash = 1
-    for (var i = 0; i < str.length; i++) {
-       hash *= str.charCodeAt(i)
+    for (var i = 0; i < value.length; i++) {
+       hash *= value.charCodeAt(i)
     }
 
     var c = (hash)
@@ -302,7 +311,7 @@ class ChartFactory {
       //defs
       this.defs = this.svg.append('defs')
 
-      if (this.featureImage) {
+      if (this.featureImage && this.featureImage.type === 'image') {
         this.images = this.defs.selectAll('pattern')
           .data(this.pcm.products)
           .enter().append('pattern')
@@ -431,9 +440,14 @@ class ChartFactory {
       this.circles = this.node.append('circle')
         .attr('r', this.nodeSize)
         .attr('fill', function (p) {
-          return self.featureImage && p.cellsByFeatureId[self.featureImage.id].type === 'image'
-            ? 'url(#image' + p.id + ')'
-            : p.color //'#009688'
+          if (self.featureImage) {
+            if (p.cellsByFeatureId[self.featureImage.id].type === 'image') {
+              return 'url(#image' + p.id + ')'
+            } else if (p.cellsByFeatureId[self.featureImage.id].type !== 'undefined') {
+              return self.valueToColor(p.cellsByFeatureId[self.featureImage.id].value)
+            }
+          }
+          return '#009688' // Teal 500
         })
 
       this.titles = this.node.append('title')
@@ -497,7 +511,7 @@ class ChartFactory {
         .attr('class', 'arc')
 
       this.path = this.node.append('path')
-        .style('fill', function (d) { return d.color = self.stringToColor(d.data) })
+        .style('fill', function (d) { return d.color = self.valueToColor(d.data) })
         .transition().delay(function (d, i) {
           var sum = 0
           for (var j = 0; j < i; j++) {
@@ -604,9 +618,14 @@ class ChartFactory {
           }
         }
         this.circles.attr('fill', function (p) {
-            return self.featureImage && p.cellsByFeatureId[self.featureImage.id].type === 'image'
-              ? 'url(#image' + p.id + ')'
-              : p.color
+            if (self.featureImage) {
+              if (p.cellsByFeatureId[self.featureImage.id].type === 'image') {
+                return 'url(#image' + p.id + ')'
+              } else if (p.cellsByFeatureId[self.featureImage.id].type !== 'undefined') {
+                return self.valueToColor(p.cellsByFeatureId[self.featureImage.id].value)
+              }
+            }
+            return '#009688' // Teal 500
           })
       }
 

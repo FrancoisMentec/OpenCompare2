@@ -11,7 +11,7 @@ class Feature {
     this.id = data.id
 
     if (typeof data.name !== 'string') console.error('feature name is incorrect')
-    this.name = data.name
+    this._name = data.name
 
     this.computeData(data, isFromDB)
 
@@ -21,7 +21,9 @@ class Feature {
       this.div.className = this.type === 'number'
         ? 'pcmFeature alignRight'
         : 'pcmFeature'
-      this.div.innerHTML = this.name
+      this.nameDiv = document.createElement('span')
+      this.nameDiv.innerHTML = this.name
+      this.div.appendChild(this.nameDiv)
       this.fixButton = document.createElement('button')
       this.fixButton.className = 'flatButton material-icons'
       this.fixButton.innerHTML = 'place'
@@ -33,6 +35,17 @@ class Feature {
         : 'pcmColumn'
 
       this.updateColumn()
+    }
+  }
+
+  get name () {
+    return this._name
+  }
+
+  set name (value) {
+    this._name = value
+    if (browser) {
+      this.nameDiv.innerHTML = this.name
     }
   }
 

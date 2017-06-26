@@ -460,3 +460,23 @@ select {
 select:hover {
   background-color: #F5F5F5; /* gray 100 */
 }
+
+/* Context menu */
+
+.contextMenu {
+  display: none;
+  position: fixed;
+  width: auto;
+  height: 0;
+  z-index: 10;
+  overflow: hidden;
+  background-color: white;
+  border: 1px solid #BDBDBD;
+  border-radius: 2px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.24);
+}
+
+.contextMenu button {
+  color: black;
+  font-family: Roboto-Regular;
+}

@@ -498,11 +498,36 @@ class Editor {
       }
     })
 
-    feature.fixButton.addEventListener('click', function (e) {
-      e.stopPropagation()
+    feature.contextMenu = new ContextMenu({
+      'Rename': function () {
+        var popupContent = document.createElement('div')
+        var featureName = new TextField('Feature name')
+        featureName.value = feature.name
+        featureName.appendTo(popupContent)
+        var popup = new Popup ('Rename ' + feature.name, popupContent, {
+          'CANCEL': function () { popup.delete() },
+          'RENAME': function () {
+            self.emit('renameFeature', {featureId: feature.id, name: featureName.value})
+            popup.delete()
+          }
+        })
+        popup.show()
+        featureName.focus()
+      }
+    })
+
+    feature.div.addEventListener('contextmenu', function (e) {
       e.preventDefault()
-      if (feature.fixed) self.unfixFeature(feature)
-      else self.fixFeature(feature)
+      feature.contextMenu.show(e.pageX, e.pageY)
+    })
+
+    feature.fixButton.addEventListener('click', function (e) {
+      if (e.button === 0) {
+        e.stopPropagation()
+        e.preventDefault()
+        if (feature.fixed) self.unfixFeature(feature)
+        else self.fixFeature(feature)
+      }
     })
   }
 
@@ -696,6 +721,13 @@ class Editor {
 
       this.server.on('addProduct', function (product) {
         self.bindProduct(self.pcm.addProduct(product, true))
+      })
+
+      this.server.on('renameFeature', function (data) {
+        var feature = self.pcm.featuresById[data.featureId]
+        feature.name = data.name
+        feature.computeWidth()
+        if (feature.fixed) self.computeFixedWidth()
       })
 
       this.server.on('addFeature', function (data) {

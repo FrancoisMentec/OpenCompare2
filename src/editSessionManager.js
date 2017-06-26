@@ -59,26 +59,45 @@ class EditSession {
       cell.feature.computeData()
       var obj = cell.export()
       obj.productId = cell.product.id
-      self.updatePCM()
-      self.broadcast('editCell', obj)
+      self.updatePCM(function () {
+        self.broadcast('editCell', obj)
+      })
     })
 
     user.socket.on('addProduct', function () {
       var product = self.pcm.addProduct().export()
-      self.updatePCM()
-      self.broadcast('addProduct', product)
+      self.updatePCM(function () {
+        self.broadcast('addProduct', product)
+      })
+    })
+
+    user.socket.on('renameFeature', function (data) {
+      var feature = self.pcm.featuresById[data.featureId]
+      if (feature) {
+        if (typeof data.name === 'string') {
+          feature.name = data.name
+          self.updatePCM(function () {
+            self.broadcast('renameFeature', data)
+          })
+        } else {
+          user.emit('err', 'Feature name isn\'t a string')
+        }
+      } else {
+        user.emit('err', 'Can\'t find the specified feature')
+      }
     })
 
     user.socket.on('addFeature', function (name) {
       if (typeof name !== 'string' || name.length === 0) user.emit('error', 'feature name isn\'t a string')
       else {
         var res = self.pcm.addFeature(name)
-        self.updatePCM()
-        res.feature = res.feature.export()
-        for (var i in res.cellsByProductId) {
-          res.cellsByProductId[i] = res.cellsByProductId[i].export()
-        }
-        self.broadcast('addFeature', res)
+        self.updatePCM(function () {
+          res.feature = res.feature.export()
+          for (var i in res.cellsByProductId) {
+            res.cellsByProductId[i] = res.cellsByProductId[i].export()
+          }
+          self.broadcast('addFeature', res)
+        })
       }
     })
 
@@ -90,8 +109,9 @@ class EditSession {
         self.pcm.author = data.author
         self.pcm.license = data.license
         self.pcm.description = data.description
-        self.updatePCM()
-        self.broadcast('editPCM', data)
+        self.updatePCM(function () {
+          self.broadcast('editPCM', data)
+        })
       }
     })
 
@@ -104,10 +124,11 @@ class EditSession {
     }
   }
 
-  updatePCM () {
+  updatePCM (success) {
     var self = this
     this.db.updatePCM(this.pcm, function (err, res) {
       if (err) self.broadcast('error', err)
+      else success()
     })
   }
 
