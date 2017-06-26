@@ -477,6 +477,10 @@ select:hover {
 }
 
 .contextMenu button {
+  display: block;
   color: black;
   font-family: Roboto-Regular;
+  text-align: left;
+  width: 100%;
+  white-space: nowrap;
 }

@@ -262,3 +262,10 @@
   height: 100%;
   overflow: auto;
 }
+
+/* Aplly function */
+
+#applyFunctionEditor {
+  height: calc(100vh - 300px);
+  width: calc(100vw - 68px);
+}

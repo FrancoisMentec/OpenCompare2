@@ -189,6 +189,7 @@ class Editor {
         alert('Your not connected to the edit sesion')
       }
     })
+
     this.addFeatureButton = document.getElementById('addFeatureButton')
     this.addFeaturePopupContent = document.createElement('div')
     this.addFeatureInput = new TextField('Name')
@@ -209,6 +210,61 @@ class Editor {
         self.addFeatureInput.focus()
       } else {
         alert('Your not connected to the edit sesion')
+      }
+    })
+
+    /**
+     * Apply function
+     * Iterate over every cell of a specified feature to apply a function coded by the user
+     */
+    this.applyFunctionFeature = null
+    this.applyFunctionContent = document.createElement('div')
+    this.applyFunctionContent.innerHTML = 'The following javascript code will be applied to every cells of the feature '
+    this.applyFunctionFeatureName = document.createElement('span')
+    this.applyFunctionFeatureName.className = 'textPrimary'
+    this.applyFunctionContent.appendChild(this.applyFunctionFeatureName)
+    this.applyFunctionEditorDiv = document.createElement('div')
+    this.applyFunctionEditorDiv.setAttribute('id', 'applyFunctionEditor')
+    this.applyFunctionEditorDiv.innerHTML = '/*\n' +
+      ' * cell is the cell to modify\n' +
+      ' * example: if (cell.value === \'?\') cell.value = 0\n' +
+      ' * it\'s useless to edit cell.type, because it\'s automatically recomputed\n' +
+      ' * \n' +
+      ' * another example to keep the first number :\n' +
+      ' *   var res = /\\d+/.exec(cell.value)\n' +
+      ' *   cell.value = res\n' +
+      ' *     ? res[0]\n' +
+      ' *     : 0\n' +
+      ' * No need to parse the result of the regex, the type detection will do that for u :-)\n' +
+      ' */\n' +
+      'cell.value = '
+    this.applyFunctionContent.appendChild(this.applyFunctionEditorDiv)
+    this.applyFunctionEditor = ace.edit(this.applyFunctionEditorDiv)
+    this.applyFunctionEditor.session.setMode('ace/mode/javascript')
+    this.applyFunctionError = document.createElement('div')
+    this.applyFunctionError.className = 'textError'
+    this.applyFunctionContent.appendChild(this.applyFunctionError)
+    this.applyFunctionPopup = new Popup('Apply function', this.applyFunctionContent, {
+      'CANCEL': function () { self.applyFunctionPopup.hide() },
+      'APPLY': function () {
+        var error = false
+        for (var p = 0, lp = self.pcm.products.length; p < lp && !error; p++) {
+          (function () { // Special scope
+            var cell = self.pcm.products[p].cellsByFeatureId[self.applyFunctionFeature.id]
+            try {
+              eval(self.applyFunctionEditor.getValue())
+              self.emit('editCell', {
+                productId: cell.product.id,
+                featureId: cell.featureId,
+                value: cell.value
+              })
+            } catch (err) {
+              error = true
+              self.applyFunctionError.innerHTML = err.message
+            }
+          })()
+        }
+        if (!error) self.applyFunctionPopup.hide()
       }
     })
 
@@ -499,7 +555,7 @@ class Editor {
     })
 
     feature.contextMenu = new ContextMenu({
-      'Rename': function () {
+      'Rename...': function () {
         var popupContent = document.createElement('div')
         var featureName = new TextField('Feature name')
         featureName.value = feature.name
@@ -513,6 +569,9 @@ class Editor {
         })
         popup.show()
         featureName.focus()
+      },
+      'Apply function...': function () {
+        self.showApplyFunction(feature)
       }
     })
 
@@ -529,6 +588,18 @@ class Editor {
         else self.fixFeature(feature)
       }
     })
+  }
+
+  /**
+   * Show the apply function popup for the specified feature
+   * @param {Feature} feature - The feature
+   */
+  showApplyFunction (feature) {
+    this.applyFunctionFeature = feature
+    this.applyFunctionFeatureName.innerHTML = feature.name
+    this.applyFunctionPopup.show()
+    this.applyFunctionEditor.focus()
+    this.applyFunctionEditor.navigateFileEnd()
   }
 
   createFilter (feature) {

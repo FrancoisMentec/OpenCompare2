@@ -362,7 +362,7 @@ class ContextMenu {
 
     this.actions = {}
     for (var a in actions) {
-      (function(){
+      (function(a){
         self.actions[a] = document.createElement('button')
         self.actions[a].className = 'flatButton'
         self.actions[a].innerHTML = a
@@ -374,13 +374,14 @@ class ContextMenu {
           self.hide()
         })
         self.content.appendChild(self.actions[a])
-      })()
+      })(a)
     }
 
     this.visible = false
   }
 
   hide () {
+    if (!this.visible) return
     var self = this
 
     $(this.div).animate({height: 0}, 200, function () {
@@ -390,16 +391,17 @@ class ContextMenu {
   }
 
   show (x, y) {
+    if (this.visible) return
     var self = this
 
+    this.div.style.display = 'block'
     if (x < 0) x = 0
-    if (x + this.content.offsetWidth > window.innerWidth) x = window.innerWidth - this.content.offsetWidth
+    if (x + this.content.offsetWidth > document.body.clientWidth) x = document.body.clientWidth - this.content.offsetWidth
     if (y < 0) y = 0
-    if (y + this.content.offsetHeight > window.innerHeight) x = window.inneinnerHeightrWidth - this.content.offsetHeight
+    if (y + this.content.offsetHeight > document.body.clientHeight) x = document.body.clientHeight - this.content.offsetHeight
 
     this.div.style.left = x + 'px'
     this.div.style.top = y + 'px'
-    this.div.style.display = 'inline-block'
     $(this.div).animate({height: this.content.offsetHeight}, 200, function () {
       self.visible = true
     })
