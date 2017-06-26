@@ -8,10 +8,6 @@ class Cell {
   constructor (data, product, isFromDB = false) {
     this.product = product
 
-    if (typeof data.id !== 'string') console.error('cell id is incorrect (value : ' + data.id + ', type : ' + typeof data.id + ')')
-    if (typeof this.product.cellsById[data.id] !== 'undefined') console.error('cell id already exists')
-    this.id = data.id
-
     if (typeof data.featureID !== 'undefined') data.featureId = data.featureID
     if (typeof data.featureId !== 'string') console.error('cell featureId is incorrect')
     this.featureId = data.featureId
@@ -96,7 +92,6 @@ class Cell {
 
   export () {
     return {
-      id: this.id,
       featureId: this.featureId,
       type: this.type,
       isPartial: this.isPartial,

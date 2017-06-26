@@ -144,7 +144,7 @@ class Editor {
         self.cellEditInput.focus()
         self.emit('editCell', {
           productId: self.selectedCell.product.id,
-          cellId: self.selectedCell.id,
+          featureId: self.selectedCell.featureId,
           value: value
         })
       }
@@ -157,14 +157,14 @@ class Editor {
           if (self.editType !== 'multiple') { // edit not multiple
             self.emit('editCell', {
               productId: self.selectedCell.product.id,
-              cellId: self.selectedCell.id,
+              featureId: self.selectedCell.featureId,
               value: self.cellEditInput.value
             })
           } else {
             if (self.cellEditInput.value.length > 0) { // edit multiple
               self.emit('editCell', {
                 productId: self.selectedCell.product.id,
-                cellId: self.selectedCell.id,
+                featureId: self.selectedCell.featureId,
                 value: self.selectedCell.value.concat(self.cellEditInput.value.replace(/^\s+|\s+$/g, ''))
               })
               self.cellEditInput.value = ''
@@ -346,7 +346,7 @@ class Editor {
         arr.splice(arr.indexOf(value), 1)
         self.emit('editCell', {
           productId: self.selectedCell.product.id,
-          cellId: self.selectedCell.id,
+          featureId: self.selectedCell.featureId,
           value: arr
         })
       } else {
@@ -672,7 +672,7 @@ class Editor {
       })
 
       this.server.on('editCell', function (data) {
-        var cell = self.pcm.productsById[data.productId].cellsById[data.id]
+        var cell = self.pcm.productsById[data.productId].cellsByFeatureId[data.featureId]
         cell.setValue(data.value, data.type)
         cell.feature.computeData()
         var filter = self.filtersByFeatureId[cell.featureId]

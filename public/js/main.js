@@ -57,7 +57,14 @@ function importPCM (file = false) {
         var res = JSON.parse(r.responseText)
         if (res.error) {
           $('#importLoading').fadeOut()
-          errorDiv.innerHTML = res.error
+          if (typeof res.error === 'string') {
+            errorDiv.innerHTML = res.error
+          } else {
+            console.error(res.error)
+            errorDiv.innerHTML = typeof res.error.message === 'string'
+              ? res.error.message
+              : 'An error that can\'t be displayed here occured, check the console (Ctrl+Shift+I).'
+          }
         } else {
           window.location = '/pcm/' + res.pcm
         }

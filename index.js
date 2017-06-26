@@ -108,11 +108,11 @@ app.post('/import', upload.single('file'), function (req, res) {
 	}, function (err, pcm) {
 		fs.unlinkSync(req.file.path)
 		if (err) {
-			res.send({error: err})
+			res.send({error: err.message})
 		} else {
 			db.savePCM(pcm, function (err, res2) {
 				if (err) {
-					res.send({error: err})
+					res.send({error: err.message})
 				} else {
 					res.send({pcm: res2.insertedId})
 				}

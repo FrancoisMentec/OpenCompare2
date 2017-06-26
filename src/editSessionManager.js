@@ -54,7 +54,7 @@ class EditSession {
     })
 
     user.socket.on('editCell', function (data) {
-      var cell = self.pcm.productsById[data.productId].cellsById[data.cellId]
+      var cell = self.pcm.productsById[data.productId].cellsByFeatureId[data.featureId]
       cell.value = data.value
       cell.feature.computeData()
       var obj = cell.export()

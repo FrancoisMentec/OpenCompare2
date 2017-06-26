@@ -137,14 +137,10 @@ class PCM {
 
       for (var p = 0, lp = this.products.length; p < lp; p++) {
         var product = this.products[p]
-        var cellId = 0
-        while (product.cellsById['C' + cellId]) cellId++
-        var cellData = {
-          id: 'C' + cellId,
-          featureId: 'F' + featureId,
-          value: null
-        }
-        cellsByProductId[product.id] = product.addCell(cellData)
+        cellsByProductId[product.id] = product.addCell({
+            featureId: 'F' + featureId,
+            value: null
+          })
       }
 
       var featureData = {
