@@ -422,7 +422,7 @@ class Editor {
     chipsDelete.addEventListener('click', function () {
       if (self.connectedToSession) {
         self.cellEditInputWrap.removeChild(chips)
-        var arr = self.selectedCell.value
+        var arr = self.selectedCell.value.slice()
         arr.splice(arr.indexOf(value), 1)
         self.editCell(self.selectedCell, arr)
       } else {

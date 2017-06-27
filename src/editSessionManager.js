@@ -59,15 +59,17 @@ class EditSession {
       cell.feature.computeData()
       var obj = cell.export()
       obj.productId = cell.product.id
-      self.updatePCM(function () {
-        self.broadcast('editCell', obj)
+      self.updatePCM(function (err) {
+        if (err) user.emit('err', err)
+        else self.broadcast('editCell', obj)
       })
     })
 
     user.socket.on('addProduct', function () {
       var product = self.pcm.addProduct().export()
-      self.updatePCM(function () {
-        self.broadcast('addProduct', product)
+      self.updatePCM(function (err) {
+        if (err) user.emit('err', err)
+        else self.broadcast('addProduct', product)
       })
     })
 
@@ -76,8 +78,9 @@ class EditSession {
       if (feature) {
         if (typeof data.name === 'string') {
           feature.name = data.name
-          self.updatePCM(function () {
-            self.broadcast('renameFeature', data)
+          self.updatePCM(function (err) {
+            if (err) user.emit('err', err)
+            else self.broadcast('renameFeature', data)
           })
         } else {
           user.emit('err', 'Feature name isn\'t a string')
@@ -91,12 +94,15 @@ class EditSession {
       if (typeof name !== 'string' || name.length === 0) user.emit('error', 'feature name isn\'t a string')
       else {
         var res = self.pcm.addFeature(name)
-        self.updatePCM(function () {
-          res.feature = res.feature.export()
-          for (var i in res.cellsByProductId) {
-            res.cellsByProductId[i] = res.cellsByProductId[i].export()
+        self.updatePCM(function (err) {
+          if (err) user.emit('err', err)
+          else {
+            res.feature = res.feature.export()
+            for (var i in res.cellsByProductId) {
+              res.cellsByProductId[i] = res.cellsByProductId[i].export()
+            }
+            self.broadcast('addFeature', res)
           }
-          self.broadcast('addFeature', res)
         })
       }
     })
@@ -109,8 +115,9 @@ class EditSession {
         self.pcm.author = data.author
         self.pcm.license = data.license
         self.pcm.description = data.description
-        self.updatePCM(function () {
-          self.broadcast('editPCM', data)
+        self.updatePCM(function (err) {
+          if (err) user.emit('err', err)
+          else self.broadcast('editPCM', data)
         })
       }
     })
@@ -124,11 +131,11 @@ class EditSession {
     }
   }
 
-  updatePCM (success) {
+  updatePCM (callback) {
     var self = this
     this.db.updatePCM(this.pcm, function (err, res) {
-      if (err) self.broadcast('error', err)
-      else success()
+      if (err) console.error(err)
+      callback(err)
     })
   }
 
