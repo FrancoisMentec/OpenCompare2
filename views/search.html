@@ -47,5 +47,15 @@
 				</div>
 			</div>
 		</div>
+
+		<script>
+			var searchBar = document.getElementById('searchBar')
+			var searchResults = document.getElementById('searchResults')
+			searchResults.addEventListener('scroll', function () {
+				searchBar.className = searchResults.scrollTop === 0
+					? ''
+					: 'scrolled'
+			})
+		</script>
 	</body>
 </html>

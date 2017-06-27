@@ -60,6 +60,11 @@ class ChartFactory {
   }
 
   init () {
+    while (this.featureImageSelect.firstChild) this.featureImageSelect.removeChild(this.featureImageSelect.firstChild)
+    while (this.feature0Select.firstChild) this.feature0Select.removeChild(this.feature0Select.firstChild)
+    while (this.feature1Select.firstChild) this.feature1Select.removeChild(this.feature1Select.firstChild)
+    while (this.feature2Select.firstChild) this.feature2Select.removeChild(this.feature2Select.firstChild)
+
     {
       var fdiv = document.createElement('option')
       fdiv.setAttribute('value', 'null')

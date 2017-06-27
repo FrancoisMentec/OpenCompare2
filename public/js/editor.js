@@ -121,6 +121,8 @@ class Editor {
     this.filtersByFeatureId = {}
 
     /* cell edition */
+    this.actionList = new ActionList(this)
+
     this.cellEdit = document.getElementById('cellEdit')
     this.closeCellEditButton = document.getElementById('closeCellEditButton')
     this.closeCellEditButton.addEventListener('click', function () {
@@ -142,11 +144,7 @@ class Editor {
             : self.cellEditInput.value
         }
         self.cellEditInput.focus()
-        self.emit('editCell', {
-          productId: self.selectedCell.product.id,
-          featureId: self.selectedCell.featureId,
-          value: value
-        })
+        self.editCell(self.selectedCell, value)
       }
     })
     this.cellEditInputWrap = document.getElementById('cellEditInputWrap')
@@ -155,18 +153,10 @@ class Editor {
       if (e.keyCode === 13) { // edit on enter
         if (self.connectedToSession) {
           if (self.editType !== 'multiple') { // edit not multiple
-            self.emit('editCell', {
-              productId: self.selectedCell.product.id,
-              featureId: self.selectedCell.featureId,
-              value: self.cellEditInput.value
-            })
+            self.editCell(self.selectedCell, self.cellEditInput.value)
           } else {
             if (self.cellEditInput.value.length > 0) { // edit multiple
-              self.emit('editCell', {
-                productId: self.selectedCell.product.id,
-                featureId: self.selectedCell.featureId,
-                value: self.selectedCell.value.concat(self.cellEditInput.value.replace(/^\s+|\s+$/g, ''))
-              })
+              self.editCell(self.selectedCell, self.selectedCell.value.concat(self.cellEditInput.value.replace(/^\s+|\s+$/g, '')))
               self.cellEditInput.value = ''
             }
           }
@@ -229,7 +219,8 @@ class Editor {
       ' * cell is the cell to modify\n' +
       ' * example: if (cell.value === \'?\') cell.value = 0\n' +
       ' * it\'s useless to edit cell.type, because it\'s automatically recomputed\n' +
-      ' * \n' +
+      ' * other example to delete all [x] (x is a number) :\n' +
+      ' *   if (cell.type == \'string\') cell.value = cell.value.replace(/\\[\\d+\\]/g, \'\')\n' +
       ' * another example to keep the first number :\n' +
       ' *   var res = /\\d+/.exec(cell.value)\n' +
       ' *   cell.value = res\n' +
@@ -248,21 +239,23 @@ class Editor {
       'CANCEL': function () { self.applyFunctionPopup.hide() },
       'APPLY': function () {
         var error = false
+        self.applyFunctionError.innerHTML = ''
+
         for (var p = 0, lp = self.pcm.products.length; p < lp && !error; p++) {
-          (function () { // Special scope
-            var cell = self.pcm.products[p].cellsByFeatureId[self.applyFunctionFeature.id]
-            try {
-              eval(self.applyFunctionEditor.getValue())
-              self.emit('editCell', {
-                productId: cell.product.id,
-                featureId: cell.featureId,
-                value: cell.value
-              })
-            } catch (err) {
-              error = true
-              self.applyFunctionError.innerHTML = err.message
+          var cell = self.pcm.products[p].cellsByFeatureId[self.applyFunctionFeature.id]
+          var previousValue = cell.value
+          try {
+            eval(self.applyFunctionEditor.getValue())
+            if (cell.value !== previousValue) {
+              var value = cell.value
+              cell.value = previousValue // Restore previous value, only server callback will change it
+              self.editCell(cell, value, p > 0)
             }
-          })()
+          } catch (err) {
+            error = true
+            if (self.applyFunctionError.innerHTML.length > 0) self.applyFunctionError.innerHTML += '<br>'
+            self.applyFunctionError.innerHTML = 'Cell ' + p + ' : ' + err.message
+          }
         }
         if (!error) self.applyFunctionPopup.hide()
       }
@@ -300,6 +293,22 @@ class Editor {
           self.editPCMPopup.hide()
         } else {
           alert('Your not connected to the edit sesion')
+        }
+      }
+    })
+
+    /* Bind keyboard events */
+    window.addEventListener('keydown', function (e) {
+      if (e.ctrlKey) {
+        var key = String.fromCharCode(e.which).toLowerCase()
+        if (key == 'z') { // Undo
+          e.preventDefault()
+          e.stopPropagation()
+          self.actionList.undo()
+        } else if (key == 'y') { // redo
+          e.preventDefault()
+          e.stopPropagation()
+          self.actionList.redo()
         }
       }
     })
@@ -371,7 +380,7 @@ class Editor {
       } else {
         this.cellEditInput.value = this.selectedCell.value
       }
-      this.cellEditInput.focus()
+      this.cellEditInput.select()
     }
   }
 
@@ -388,6 +397,21 @@ class Editor {
       : this.cellEditInputWrap.offsetWidth + 'px'
   }
 
+  /**
+   * Use this function to edit a cell,
+   * it will send the editCell event to the server and store the previous value for possible undo
+   * @param {Cell} cell - the cell to edit
+   * @param {} value - the new value
+   * @param {boolean} stack - Refer to ActionList.push stack parameter
+   */
+  editCell (cell, value, stack = false) {
+    this.actionList.push(new CellEditAction(cell, value), stack)
+  }
+
+  /**
+   * Add a chips to the edit cell input (used for multiple value)
+   * @param {string} value - the value of the chips
+   */
   addEditChips (value) {
     var self = this
     var chips = document.createElement('div')
@@ -400,11 +424,7 @@ class Editor {
         self.cellEditInputWrap.removeChild(chips)
         var arr = self.selectedCell.value
         arr.splice(arr.indexOf(value), 1)
-        self.emit('editCell', {
-          productId: self.selectedCell.product.id,
-          featureId: self.selectedCell.featureId,
-          value: arr
-        })
+        self.editCell(self.selectedCell, arr)
       } else {
         alert('Not connected to edit session')
       }
@@ -788,6 +808,7 @@ class Editor {
             self.cellEditInput.value = self.selectedCell.value
           }
         }
+        self.chartFactory.init()
       })
 
       this.server.on('addProduct', function (product) {
