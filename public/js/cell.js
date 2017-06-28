@@ -61,6 +61,12 @@ class Cell {
     }
   }
 
+  cloneValue () {
+    if (Array.isArray(this.value)) return this.value.slice()
+    else if (typeof this.value === 'object') return Object.assign({}, this.value)
+    return this.value
+  }
+
   get html () {
     var html = ''
 

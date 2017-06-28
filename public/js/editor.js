@@ -209,10 +209,15 @@ class Editor {
      */
     this.applyFunctionFeature = null
     this.applyFunctionContent = document.createElement('div')
-    this.applyFunctionContent.innerHTML = 'The following javascript code will be applied to every cells of the feature '
+    this.applyFunctionContent.appendChild(document.createTextNode('The following javascript code will be applied to every cells of the feature '))
     this.applyFunctionFeatureName = document.createElement('span')
     this.applyFunctionFeatureName.className = 'textPrimary'
     this.applyFunctionContent.appendChild(this.applyFunctionFeatureName)
+    this.applyFunctionContent.appendChild(document.createTextNode(' that '))
+    var b = document.createElement('b')
+    b.innerText = 'match the configurator'
+    this.applyFunctionContent.appendChild(b)
+    this.applyFunctionContent.appendChild(document.createTextNode(' (the entire product has to match the configurator, not just the cell).'))
     this.applyFunctionEditorDiv = document.createElement('div')
     this.applyFunctionEditorDiv.setAttribute('id', 'applyFunctionEditor')
     this.applyFunctionEditorDiv.innerHTML = '/*\n' +
@@ -242,19 +247,23 @@ class Editor {
         self.applyFunctionError.innerHTML = ''
 
         for (var p = 0, lp = self.pcm.products.length; p < lp && !error; p++) {
-          var cell = self.pcm.products[p].cellsByFeatureId[self.applyFunctionFeature.id]
-          var previousValue = cell.value
-          try {
-            eval(self.applyFunctionEditor.getValue())
-            if (cell.value !== previousValue) {
-              var value = cell.value
-              cell.value = previousValue // Restore previous value, only server callback will change it
-              self.editCell(cell, value, p > 0)
+          var feature = self.applyFunctionFeature
+          var product = self.pcm.products[p]
+          var cell = product.cellsByFeatureId[feature.id]
+          if (product.match) {
+            var previousValue = cell.cloneValue()
+            try {
+              eval(self.applyFunctionEditor.getValue())
+              if (cell.value !== previousValue) {
+                var value = cell.value
+                cell.value = previousValue // Restore previous value, only server callback will change it
+                self.editCell(cell, value, p > 0)
+              }
+            } catch (err) {
+              error = true
+              if (self.applyFunctionError.innerHTML.length > 0) self.applyFunctionError.innerHTML += '<br>'
+              self.applyFunctionError.innerHTML = 'Cell ' + p + ' : ' + err.message
             }
-          } catch (err) {
-            error = true
-            if (self.applyFunctionError.innerHTML.length > 0) self.applyFunctionError.innerHTML += '<br>'
-            self.applyFunctionError.innerHTML = 'Cell ' + p + ' : ' + err.message
           }
         }
         if (!error) self.applyFunctionPopup.hide()
