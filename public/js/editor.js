@@ -556,8 +556,30 @@ class Editor {
    */
   bindCell (cell) {
     var self = this
+
     cell.div.addEventListener('click', function () {
       self.selectedCell = cell
+    })
+
+    cell.contextMenu = new ContextMenu({
+      'Edit': function () { self.selectedCell = cell },
+      'Inspect...': function () {
+        var content = document.createElement('div')
+        content.innerHTML = '<b>value :</b> ' + cell.value + '<br>' +
+          '<b>type :</b> ' + cell.type + '<br>' +
+          '<b>is partial :</b> ' + cell.isPartial + '<br>' +
+          '<b>unit :</b> ' + cell.unit + '<br>'
+        if (cell.type === 'image') content.innerHTML += cell.html
+        var popup = new Popup('Cell', content, {
+          'CLOSE': function () { popup.delete() }
+        })
+        popup.show()
+      }
+    })
+
+    cell.div.addEventListener('contextmenu', function (e) {
+      e.preventDefault()
+      cell.contextMenu.show(e.pageX, e.pageY)
     })
   }
 

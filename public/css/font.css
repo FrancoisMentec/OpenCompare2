@@ -96,6 +96,11 @@ h1 {
   font-weight: normal;
 }
 
+b {
+  font-family: Roboto-Bold;
+  font-weight: normal;
+}
+
 .caption {
   color: #9E9E9E; /* Gray 500 */
   font-size: 13px;
