@@ -92,3 +92,24 @@ class CellEditAction {
     })
   }
 }
+
+class RemoveFeatureAction {
+  constructor (feature) {
+    this.feature = feature.export()
+    this.cellsByProductId = {}
+    for (var i in feature.pcm.productsById) {
+      this.cellsByProductId[i] = feature.pcm.productsById[i].cellsByFeatureId[feature.id].export()
+    }
+  }
+
+  perform (editor) {
+    editor.emit('removeFeature', this.feature.id)
+  }
+
+  undo (editor) {
+    editor.emit('addFeature', {
+      feature: this.feature,
+      cellsByProductId: this.cellsByProductId
+    })
+  }
+}

@@ -10,6 +10,15 @@ class PCM {
     this._id = isFromDB
       ? data._id
       : null
+
+    // id gen are made to prevent identical id generation (can cause bug when undo/redo addFeature or removeFeature)
+    this.featureIdGen = isFromDB
+      ? data.featureIdGen
+      : 0
+    this.productIdGen = isFromDB
+      ? data.productIdGen
+      : 0
+
     this.name = typeof data.name === 'string'
       ? data.name
       : null
@@ -36,9 +45,7 @@ class PCM {
     this.productsById = {}
     if (typeof data.products === 'object') {
       for (var p in data.products) {
-        var productData = data.products[p]
-        if (typeof productData.id === 'undefined') productData.id = p
-        var product = new Product(productData, this, isFromDB)
+        var product = new Product(data.products[p], this, isFromDB)
         this.products.push(product)
         this.productsById[product.id] = product
       }
@@ -48,9 +55,7 @@ class PCM {
     this.featuresById = {}
     if (typeof data.features === 'object') {
       for (var f in data.features) {
-        var featureData = data.features[f]
-        if (typeof featureData.id === 'undefined') featureData.id = f
-        var feature = new Feature(featureData, this, isFromDB)
+        var feature = new Feature(data.features[f], this, isFromDB)
         this.features.push(feature)
         this.featuresById[feature.id] = feature
       }
@@ -94,18 +99,9 @@ class PCM {
    */
   addProduct (data = null, isFromDB = false) {
     if (data == null) {
-      var id = 0
-      while (this.productsById['P' + id]) {
-        id++
-      }
-      id = 'P' + id
-      data = {
-        id: id,
-        cells: []
-      }
+      data = {cells: []}
       for (var f = 0, lf = this.features.length; f < lf; f++) {
         data.cells.push({
-          id: 'C' + f,
           featureId: this.features[f].id,
           value: null
         })
@@ -131,30 +127,34 @@ class PCM {
     var cellsByProductId = {}
     var feature = null
 
-    if (typeof data === 'string') { // data is the name of the feature (server side)
-      var featureId = 0
-      while (this.featuresById['F' + featureId]) featureId++
+    if (typeof data === 'string') { // data is the name of the feature
+      feature = new Feature({name: data}, this, false, false)
+      this.features.push(feature)
+      this.featuresById[feature.id] = feature
 
       for (var p = 0, lp = this.products.length; p < lp; p++) {
         var product = this.products[p]
         cellsByProductId[product.id] = product.addCell({
-            featureId: 'F' + featureId,
+            featureId: feature.id,
             value: null
           })
       }
 
-      var featureData = {
-        id: 'F' + featureId,
-        name: data
+      feature.computeData()
+    } else { // data contains feature and cells
+      if (this.featuresById[data.feature.id]) throw new Error('A feature with the id : ' + data.feature.id + ', already exists')
+
+      for (var productId in this.productsById) {
+        if (data.cellsByProductId[productId]) {
+          cellsByProductId[productId] = this.productsById[productId].addCell(data.cellsByProductId[productId], true)
+        } else {
+          cellsByProductId[productId] = this.productsById[productId].addCell({
+            featureId: data.feature.id,
+            value: null
+          }, true)
+        }
       }
-      feature = new Feature(featureData, this)
-      this.features.push(feature)
-      this.featuresById[feature.id] = feature
-    } else { // data contains feature and cells (client side)
-      for (var productId in data.cellsByProductId) {
-        cellsByProductId[productId] = this.productsById[productId].addCell(data.cellsByProductId[productId], true)
-      }
-      feature = new Feature(data.feature, this)
+      feature = new Feature(data.feature, this, true)
       this.features.push(feature)
       this.featuresById[feature.id] = feature
     }
@@ -164,6 +164,25 @@ class PCM {
     return {
       feature: feature,
       cellsByProductId: cellsByProductId
+    }
+  }
+
+  /**
+   * Remove the feature corresponding to featureId
+   * @param {String} featrueId - the id of the feature
+   */
+  removeFeature (featureId) {
+    var feature = this.featuresById[featureId]
+    if (feature) {
+      this.features.splice(this.features.indexOf(feature), 1)
+      delete this.featuresById[featureId]
+      if (this.primaryFeatureId == feature.id) {
+        this.primaryFeatureId = this.features[0]
+          ? this.features[0].id
+          : null
+      }
+    } else {
+      throw new Error('Feature with id : ' + featureId + ', doesn\'t exists')
     }
   }
 
@@ -180,6 +199,8 @@ class PCM {
 
     var obj = {
       name: this.name,
+      featureIdGen: this.featureIdGen,
+      productIdGen: this.productIdGen,
       description: this.description,
       license: this.license,
       source: this.source,

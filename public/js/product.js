@@ -8,9 +8,9 @@ class Product {
   constructor (data, pcm, isFromDB = false) {
     this.pcm = pcm
 
-    if (typeof data.id !== 'string') console.error('product id is incorrect (value : ' + data.id + ', type : ' + typeof data.id + ')')
-    if (typeof this.pcm.productsById[data.id] !== 'undefined') console.error('product id already exists')
-    this.id = data.id
+    this.id = isFromDB
+      ? data.id
+      : 'P' + this.pcm.productIdGen++
 
     this.cells = []
     this.cellsByFeatureId = {}

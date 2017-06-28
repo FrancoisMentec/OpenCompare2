@@ -1,19 +1,19 @@
 var browser = typeof window !== 'undefined'
 
 class Feature {
-  constructor (data, pcm, isFromDB = false) {
+  constructor (data, pcm, isFromDB = false, computeData = true) {
     var self = this
 
     this.pcm = pcm
 
-    if (typeof data.id !== 'string') console.error('feature id is incorrect')
-    if (typeof this.pcm.featuresById[data.id] !== 'undefined') console.error('feature id already exists')
-    this.id = data.id
+    this.id = isFromDB
+      ? data.id
+      : 'F' + this.pcm.featureIdGen++
 
     if (typeof data.name !== 'string') console.error('feature name is incorrect')
     this._name = data.name
 
-    this.computeData(data, isFromDB)
+    if (computeData) this.computeData(data, isFromDB)
 
     if (browser) { // create div if in browser
       this.fixed = false

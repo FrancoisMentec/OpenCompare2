@@ -521,7 +521,7 @@ class Editor {
   updatePCMData () {
     this.pcmName.innerHTML = this.pcm.name || 'No name'
 
-    this.pcmSource.innerHTML = this.pcm.source == null
+    this.pcmSource.innerHTML = this.pcm.source == null || this.pcm.source.length == 0
       ? 'unknown'
       : isUrl(this.pcm.source)
         ? '<a href="' + this.pcm.source + '" target="_blank">' + this.pcm.source + '</a>'
@@ -589,6 +589,9 @@ class Editor {
         })
         popup.show()
         featureName.focus()
+      },
+      'Remove': function () {
+        self.actionList.push(new RemoveFeatureAction(feature))
       },
       'Apply function...': function () {
         self.showApplyFunction(feature)
@@ -832,6 +835,22 @@ class Editor {
         self.configuratorContent.appendChild(self.createFilter(data.feature).div)
         for (var i in data.cellsByProductId) {
           self.bindCell(data.cellsByProductId[i])
+        }
+      })
+
+      this.server.on('removeFeature', function (featureId) {
+        var feature = self.pcm.featuresById[featureId]
+        if (feature) {
+          if (feature.fixed) {
+            self.fixedFeaturesName.removeChild(feature.div)
+            self.fixedFeaturesColumn.removeChild(feature.column)
+            self.computeFixedWidth()
+          } else {
+            self.pcmFeatures.removeChild(feature.div)
+            self.pcmProducts.removeChild(feature.column)
+          }
+          self.configuratorContent.removeChild(self.filtersByFeatureId[featureId].div)
+          self.pcm.removeFeature(featureId)
         }
       })
 

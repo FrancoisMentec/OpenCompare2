@@ -77,19 +77,16 @@ function importFromCSV (src, callback) {
     // add features
     for (var f = 0, lf = output[0].length; f < lf; f++) {
       data.features.push({
-        id: 'F' + f,
         name: output[0][f]
       })
     }
     // add products
     for (var p = 1, lp = output.length; p < lp; p++) {
       var product = {
-        id: 'P' + (p - 1),
         cells: []
       }
       for (var f = 0, lf = data.features.length; f < lf; f++) {
         product.cells.push({
-          id: 'C' + cellN++,
           featureId: 'F' + f,
           value: output[p][f]
         })
@@ -159,19 +156,16 @@ function importFromUrl (url, callback) {
 
             for (var f = 0, lf = matrice.array[0].length; f < lf; f++) {
               pcm.features.push({
-                id: 'F' + f,
                 name: elementToValue(matrice.array[0][f], url)
               })
             }
 
             for (var p = 1, lp = matrice.array.length; p < lp; p++) {
               var product = {
-                id: 'P' + (p - 1),
                 cells: []
               }
               for (var f = 0, lf = matrice.array[p].length; f < lf; f++) {
                 product.cells.push({
-                  id: 'C' + f,
                   featureId: 'F' + f,
                   value: elementToValue(matrice.array[p][f], url)
                 })
