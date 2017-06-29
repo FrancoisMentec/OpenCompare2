@@ -67,6 +67,19 @@ class PCM {
     return this.featuresById[this.primaryFeatureId] || null
   }
 
+  /**
+   * Re-detect the entire pcm (products, cells and features)
+   */
+  retype () {
+    for (var p = 0, lp = this.products.length; p < lp; p++) {
+      this.products[p].retype()
+    }
+    
+    for (var f = 0, lf = this.features.length; f < lf; f++) {
+      this.features[f].computeData()
+    }
+  }
+
   sort (feature = this.primaryFeature, order = 1) {
     //console.time('sort pcm')
     this.products.sort(function (p1, p2) {

@@ -46,6 +46,13 @@ class Cell {
     return this.product.pcm.featuresById[this.featureId]
   }
 
+  /**
+   * Re-detect the type of cell
+   */
+  retype () {
+    this.setValue(this.value)
+  }
+
   setValue (value, type = null) {
     if (type == null) {
       var res = detectType(value)

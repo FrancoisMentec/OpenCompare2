@@ -41,7 +41,9 @@ function importFromOpenCompare (id, callback) {
        try {
          var pcm = JSON.parse(responseString)
          pcm.source = 'https://opencompare.org/pcm/' + id
-         callback(null, new PCM(pcm, true))
+         pcm = new PCM(pcm, true)
+         pcm.retype()
+         callback(null, pcm)
        } catch (err) {
          callback(err, null)
        }

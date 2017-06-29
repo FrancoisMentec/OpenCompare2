@@ -69,6 +69,15 @@ class Product {
     return this._color
   }
 
+  /**
+   * Re-detect the type of all cells
+   */
+  retype () {
+    for (var c = 0, lc = this.cells.length; c < lc; c++) {
+      this.cells[c].retype()
+    }
+  }
+
   addCell (cellData, isFromDB = false) {
     var cell = new Cell(cellData, this, isFromDB)
     this.cells.push(cell)
