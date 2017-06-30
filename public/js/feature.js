@@ -114,13 +114,27 @@ class Feature {
     }
   }
 
-  updateColumn () {
+  /**
+   * Update the column (remove all products and add only those which are visible)
+   * @param {number} scrollTop - the top position of the scroll in the view
+   * @param {number} viewHeight - the height of the view (the visible part)
+   * @param {number} productHeight - the height of a products (default 48, the height of a data table line in material design)
+   */
+  updateColumn (scrollTop, viewHeight, productHeight = 48) {
     while (this.column.firstChild) {
       this.column.removeChild(this.column.firstChild)
     }
 
-    for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
-      this.column.appendChild(this.pcm.products[p].cellsByFeatureId[this.id].div)
+    this.column.style.top = scrollTop - (scrollTop % productHeight) + 'px'
+
+    for (var p = 0, lp = this.pcm.products.length, top = 0; p < lp && top < scrollTop + viewHeight; p++) {
+      var product = this.pcm.products[p]
+      if (product.show) {
+        if (top + productHeight >= scrollTop) {
+          this.column.appendChild(product.cellsByFeatureId[this.id].div)
+        }
+        top += productHeight
+      }
     }
   }
 

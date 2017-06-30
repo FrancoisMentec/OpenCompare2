@@ -341,8 +341,10 @@ class Popup {
 /* Context menu */
 
 class ContextMenu {
-  constructor (actions) {
+  constructor (actions, deleteOnHide = false) {
     var self = this
+
+    this.deleteOnHide = deleteOnHide
 
     this.div = document.createElement('div')
     this.div.className = 'contextMenu'
@@ -387,6 +389,7 @@ class ContextMenu {
     $(this.div).animate({height: 0}, 200, function () {
       self.visible = false
       self.div.style.display = 'none'
+      if (self.deleteOnHide) document.body.removeChild(self.div)
     })
   }
 

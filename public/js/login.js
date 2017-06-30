@@ -13,6 +13,7 @@ logoutButton.addEventListener('click', function () {
 function login () {
   var r = new XMLHttpRequest()
   r.open('POST', '/login', true)
+  r.setRequestHeader('Pragma', 'no-cache')
   r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
   r.onreadystatechange = function () {
     if (r.readyState != 4 || r.status != 200) return
@@ -31,6 +32,7 @@ function login () {
 function getUser () {
   var r = new XMLHttpRequest()
   r.open('GET', '/user', true)
+  r.setRequestHeader('Pragma', 'no-cache')
   r.onreadystatechange = function () {
     if (r.readyState != 4 || r.status != 200) return
     var res = JSON.parse(r.responseText)

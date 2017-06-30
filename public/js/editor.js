@@ -70,6 +70,7 @@ class Editor {
     this.sortId = null
     this.sortOrder = null // INCREASE or DECREASE
     this._selectedCell = null
+    this.updateTimeout = null
 
     this.pcmName = document.getElementById('pcmName')
     this.pcmSource = document.getElementById('pcmSource')
@@ -103,6 +104,7 @@ class Editor {
       self.configurator.className = self.fixedFeaturesName.className = self.fixedFeaturesColumn.className = left > 0
         ? 'scrolledRight'
         : ''
+      self.updatePCMView()
     })
     this.configurator = document.getElementById('configurator')
     this.configuratorTitle = document.getElementById('configuratorTitle')
@@ -455,6 +457,7 @@ class Editor {
 
     var r = new XMLHttpRequest()
     r.open('GET', API + this.pcmId, true)
+    r.setRequestHeader('Pragma', 'no-cache')
     r.onreadystatechange = function () {
       if (r.readyState != 4 || r.status != 200) return
 
@@ -517,6 +520,12 @@ class Editor {
     this.connect()
   }
 
+  updatePCMView () {
+    var height = this.productMathing * 48 // 48 is the height of a product
+    this.fixedFeaturesColumn.style.height = height + 'px'
+    this.pcmProducts.style.height = height + 'px'
+    this.pcm.updateView(this.pcmDiv.scrollTop, this.pcmDiv.clientHeight - 56)
+  }
   /**
    * Compute the width of every features
    */
@@ -570,25 +579,24 @@ class Editor {
       self.selectedCell = cell
     })
 
-    cell.contextMenu = new ContextMenu({
-      'Edit': function () { self.selectedCell = cell },
-      'Inspect...': function () {
-        var content = document.createElement('div')
-        content.innerHTML = '<b>value :</b> ' + cell.value + '<br>' +
-          '<b>type :</b> ' + cell.type + '<br>' +
-          '<b>is partial :</b> ' + cell.isPartial + '<br>' +
-          '<b>unit :</b> ' + cell.unit + '<br>'
-        if (cell.type === 'image') content.innerHTML += cell.html
-        var popup = new Popup('Cell', content, {
-          'CLOSE': function () { popup.delete() }
-        })
-        popup.show()
-      }
-    })
-
     cell.div.addEventListener('contextmenu', function (e) {
       e.preventDefault()
-      cell.contextMenu.show(e.pageX, e.pageY)
+      var contextMenu = new ContextMenu({
+        'Edit': function () { self.selectedCell = cell },
+        'Inspect...': function () {
+          var content = document.createElement('div')
+          content.innerHTML = '<b>value :</b> ' + cell.value + '<br>' +
+            '<b>type :</b> ' + cell.type + '<br>' +
+            '<b>is partial :</b> ' + cell.isPartial + '<br>' +
+            '<b>unit :</b> ' + cell.unit + '<br>'
+          if (cell.type === 'image') content.innerHTML += cell.html
+          var popup = new Popup('Cell', content, {
+            'CLOSE': function () { popup.delete() }
+          })
+          popup.show()
+        }
+      }, true)
+      contextMenu.show(e.pageX, e.pageY)
     })
   }
 
@@ -605,33 +613,42 @@ class Editor {
       }
     })
 
-    feature.contextMenu = new ContextMenu({
-      'Rename...': function () {
-        var popupContent = document.createElement('div')
-        var featureName = new TextField('Feature name')
-        featureName.value = feature.name
-        featureName.appendTo(popupContent)
-        var popup = new Popup ('Rename ' + feature.name, popupContent, {
-          'CANCEL': function () { popup.delete() },
-          'RENAME': function () {
-            self.emit('renameFeature', {featureId: feature.id, name: featureName.value})
-            popup.delete()
-          }
-        })
-        popup.show()
-        featureName.focus()
-      },
-      'Remove': function () {
-        self.actionList.push(new RemoveFeatureAction(feature))
-      },
-      'Apply function...': function () {
-        self.showApplyFunction(feature)
-      }
-    })
-
     feature.div.addEventListener('contextmenu', function (e) {
       e.preventDefault()
-      feature.contextMenu.show(e.pageX, e.pageY)
+      var contextMenu = new ContextMenu({
+        'Rename...': function () {
+          var popupContent = document.createElement('div')
+          var featureName = new TextField('Feature name')
+          featureName.value = feature.name
+          featureName.appendTo(popupContent)
+          var popup = new Popup ('Rename ' + feature.name, popupContent, {
+            'CANCEL': function () { popup.delete() },
+            'RENAME': function () {
+              self.emit('renameFeature', {featureId: feature.id, name: featureName.value})
+              popup.delete()
+            }
+          })
+          popup.show()
+          featureName.focus()
+        },
+        'Remove': function () {
+          self.actionList.push(new RemoveFeatureAction(feature))
+        },
+        'Inspect...': function () {
+          var content = document.createElement('div')
+          content.innerHTML = '<b>name :</b> ' + feature.name + '<br>' +
+            '<b>id :</b> ' + feature.id + '<br>' +
+            '<b>type :</b> ' + feature.type + '<br>'
+          var popup = new Popup('Feature', content, {
+            'CLOSE': function () { popup.delete() }
+          })
+          popup.show()
+        },
+        'Apply function...': function () {
+          self.showApplyFunction(feature)
+        }
+      }, true)
+      contextMenu.show(e.pageX, e.pageY)
     })
 
     feature.fixButton.addEventListener('click', function (e) {
@@ -740,6 +757,7 @@ class Editor {
       }
 
       this.pcm.sort(this.pcm.featuresById[this.sortId], this.sortOrder)
+      this.updatePCMView()
     }
   }
 
@@ -751,6 +769,8 @@ class Editor {
   }
 
   filterChanged (filter) {
+    var self = this
+
     this.productMathing = 0
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
       var product = this.pcm.products[p]
@@ -762,14 +782,22 @@ class Editor {
         product.show = false
       }
     }
-    this.updateConfiguratorTitle()
-    this.chartFactory.updateChart()
+
+    // The timeout is here to prevent lags due to too frequent changes
+    if (this.updateTimeout) clearTimeout(this.updateTimeout)
+    this.updateTimeout = setTimeout(function () {
+      self.updatePCMView()
+      self.updateConfiguratorTitle()
+      self.chartFactory.updateChart()
+      self.updateTimeout = null
+    }, 100)
   }
 
   /**
    * Connect to the edit session using socket.io and bind events
    */
   connect () {
+    if (user == null) return
     if (this.server != null) return false
     var self = this
     var res = /token=([^;]+)/.exec(document.cookie)

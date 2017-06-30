@@ -13,7 +13,8 @@ function detectType (value) {
   } else if (Array.isArray(value)) {
     type = 'multiple'
   } else if (type === 'object' || type === 'function') {
-    console.error('a value can\'t be of type object or function')
+    type = 'undefined'
+    value = null
   } else if (type === 'string') {
     if (value.length == 0) {
       type = 'undefined'

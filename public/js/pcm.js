@@ -74,7 +74,7 @@ class PCM {
     for (var p = 0, lp = this.products.length; p < lp; p++) {
       this.products[p].retype()
     }
-    
+
     for (var f = 0, lf = this.features.length; f < lf; f++) {
       this.features[f].computeData()
     }
@@ -92,14 +92,30 @@ class PCM {
       return 0
     })
     //console.timeEnd('sort pcm')
-
-    this.updateView()
   }
 
-  updateView () {
+  /**
+   * set the height of every column
+   * @param {number} height - the height in px
+   */
+  setColumnsHeight (height) {
     if (browser) {
       for (var f = 0, lf = this.features.length; f < lf; f++) {
-        this.features[f].updateColumn()
+        this.features[f].column.style.height = height + 'px'
+      }
+    }
+  }
+
+  /**
+   * Update the column of every feature
+   * @param {number} scrollTop - the top position of the scroll in the view
+   * @param {number} viewHeight - the height of the view (the visible part)
+   * @param {number} productHeight - the height of a products (default 48, the height of a data table line in material design)
+   */
+  updateView (scrollTop, viewHeight, productHeight = 48) {
+    if (browser) {
+      for (var f = 0, lf = this.features.length; f < lf; f++) {
+        this.features[f].updateColumn(scrollTop, viewHeight, productHeight)
       }
     }
   }
