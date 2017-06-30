@@ -14,6 +14,8 @@ module.exports = class User {
       })
     })
     this.user = null
+    this.packets = []
+    this.sendPacketsTimeout = null
     this.editSessionManager = editSessionManager
   }
 
@@ -34,9 +36,23 @@ module.exports = class User {
   }
 
   emit (action, data) {
+    var self = this
+
     if (action === 'error') action = 'err'
     try {
-      this.socket.emit(action, data)
+      if (this.sendPacketsTimeout) clearTimeout(this.sendPacketsTimeout)
+
+      this.packets.push({
+        action: action,
+        data: data
+      })
+
+      this.sendPacketsTimeout = setTimeout(function () {
+        //console.log('send ' + self.packets.length + ' packets (' + JSON.stringify(self.packets).length + ' B)')
+        self.socket.emit('packets', self.packets)
+        self.packets = []
+        self.sendPacketsTimeout = null
+      }, 100)
     } catch (err) {
       console.error(err)
     }

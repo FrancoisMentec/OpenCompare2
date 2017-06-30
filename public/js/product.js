@@ -39,11 +39,8 @@ class Product {
   set show (value) {
     if (value != this.show) {
       this._show = value
-      for (var c = 0, lc = this.cells.length; c < lc; c++) {
-        this.cells[c].div.style.display = this.show
-          ? ''
-          : 'none'
-      }
+      if (this.show) this.pcm.productsShown++
+      else this.pcm.productsShown--
     }
   }
 

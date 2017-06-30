@@ -50,6 +50,7 @@ class PCM {
         this.productsById[product.id] = product
       }
     }
+    this.productsShown = this.products.length
 
     this.features = []
     this.featuresById = {}
@@ -141,7 +142,7 @@ class PCM {
     this.products.push(product)
     this.productsById[product.id] = product
 
-    this.updateView()
+    this.productsShown++
 
     return product
   }

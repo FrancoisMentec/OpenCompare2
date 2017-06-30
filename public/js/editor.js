@@ -10,6 +10,8 @@ class Editor {
     this.server = null
     this.connected = false
     this.connectedToEditSession = false
+    this.packets = [] // A queue that contains all packet waiting to be sent to the server
+    this.sendPacketsTimeout = null // The timeout that send packet to the server
 
     /* views */
     this._view = null
@@ -521,7 +523,7 @@ class Editor {
   }
 
   updatePCMView () {
-    var height = this.productMathing * 48 // 48 is the height of a product
+    var height = this.pcm.productsShown * 48 // 48 is the height of a product
     this.fixedFeaturesColumn.style.height = height + 'px'
     this.pcmProducts.style.height = height + 'px'
     this.pcm.updateView(this.pcmDiv.scrollTop, this.pcmDiv.clientHeight - 56)
@@ -829,110 +831,116 @@ class Editor {
         self.server = null
       })
 
-      this.server.on('err', function (data) {
-        alert('Error: ' + data)
-      })
+      this.server.on('packets', function (packets) {
+        var featuresToUpdate = []
+        var initChartFactory = false
+        //console.log('received ' + packets.length + ' packets')
 
-      this.server.on('connectedToSession', function (data) {
-        self.connectedToSession = true
-        self.cellEdit.className = ''
-        self.editAction.style.display = 'inline-block'
-        self.chat.style.display = 'block'
-        self.chatButton.style.display = 'block'
-      })
+        for (var p = 0, lp = packets.length; p < lp; p++) {
+          (function (action, data) {
+            if (action == 'err') {
+              console.error(data)
+              var message = typeof data == 'string'
+                ? data
+                : data.message || 'Unknown error'
+              alert('Error: ' + data)
+            } else if (action == 'connectedToSession') {
+              self.connectedToSession = true
+              self.cellEdit.className = ''
+              self.editAction.style.display = 'inline-block'
+              self.chat.style.display = 'block'
+              self.chatButton.style.display = 'block'
+            } else if (action == 'updateUsersList') {
+              self.chatTopBar.innerHTML = data.length > 1
+                ? data.length + ' people connected'
+                : 'You\'re alone :-('
+            } else if (action == 'editCell') { // Edit cell
+              var cell = self.pcm.productsById[data.productId].cellsByFeatureId[data.featureId]
+              cell.setValue(data.value, data.type)
+              if (featuresToUpdate.indexOf(cell.feature.id) == -1) featuresToUpdate.push(cell.feature.id)
+              if (cell == self.selectedCell) {
+                self.removeAllEditChips()
+                self.editType = cell.type
+                if (self.editType === 'multiple') {
+                  for (var i = 0, li = self.selectedCell.value.length; i < li; i++) {
+                    self.addEditChips(self.selectedCell.value[i])
+                  }
+                } else {
+                  self.cellEditInput.value = self.selectedCell.value
+                }
+              }
+              initChartFactory = true
+            } else if (action == 'addProduct') {
+              self.bindProduct(self.pcm.addProduct(data, true))
+              this.updatePCMView()
+            } else if (action == 'renameFeature') {
+              var feature = self.pcm.featuresById[data.featureId]
+              feature.name = data.name
+              feature.computeWidth()
+              if (feature.fixed) self.computeFixedWidth()
+            } else if (action == 'addFeature') {
+              data = self.pcm.addFeature(data)
+              self.bindFeature(data.feature)
+              self.pcmFeatures.appendChild(data.feature.div)
+              self.pcmProducts.appendChild(data.feature.column)
+              data.feature.computeWidth()
+              self.configuratorContent.appendChild(self.createFilter(data.feature).div)
+              for (var i in data.cellsByProductId) {
+                self.bindCell(data.cellsByProductId[i])
+              }
+              this.updatePCMView()
+              initChartFactory = true
+            } else if (action == 'removeFeature') {
+              var feature = self.pcm.featuresById[data]
+              if (feature) {
+                if (feature.fixed) {
+                  self.fixedFeaturesName.removeChild(feature.div)
+                  self.fixedFeaturesColumn.removeChild(feature.column)
+                  self.computeFixedWidth()
+                } else {
+                  self.pcmFeatures.removeChild(feature.div)
+                  self.pcmProducts.removeChild(feature.column)
+                }
+                self.configuratorContent.removeChild(self.filtersByFeatureId[data].div)
+                self.pcm.removeFeature(data)
+              }
+              initChartFactory = true
+            } else if (action == 'editPCM') {
+              self.pcm.name = data.name
+              self.pcm.source = data.source
+              self.pcm.author = data.author
+              self.pcm.license = data.license
+              self.pcm.description = data.description
+              self.updatePCMData()
+            } else if (action == 'message') {
+              self.chatMessageList.innerHTML += '<div class="chatMessage"><div class="chatMessagePseudo">' + data.pseudo + '</div>'
+                + '<div class="chatMessageContent">' + data.message + '</div></div>'
+              if (self.chatAutoscroll) {
+                self.chatMessageList.scrollTop = self.chatMessageList.scrollHeight
+              }
 
-      this.server.on('updateUsersList', function (data) {
-        /*console.log('userList')
-        console.log(data)*/
-        self.chatTopBar.innerHTML = data.length > 1
-          ? data.length + ' people connected'
-          : 'You\'re alone :-('
-      })
-
-      this.server.on('editCell', function (data) {
-        var cell = self.pcm.productsById[data.productId].cellsByFeatureId[data.featureId]
-        cell.setValue(data.value, data.type)
-        cell.feature.computeData()
-        var filter = self.filtersByFeatureId[cell.featureId]
-        var matchAll = filter.matchAll
-        filter.buildFilter()
-        if (!matchAll) self.filterChanged(filter)
-        cell.feature.computeWidth()
-        if (cell.feature.fixed) self.computeFixedWidth()
-        if (cell == self.selectedCell) {
-          self.removeAllEditChips()
-          self.editType = cell.type
-          if (self.editType === 'multiple') {
-            for (var i = 0, li = self.selectedCell.value.length; i < li; i++) {
-              self.addEditChips(self.selectedCell.value[i])
+              if (!self.chatVisible) {
+                self.chatButtonBadge.innerHTML = ++self.chatUnreadMessage
+                self.chatButtonBadge.className = 'badge visible'
+              }
+            } else {
+              alert('Error, unkown action : ' + action)
             }
-          } else {
-            self.cellEditInput.value = self.selectedCell.value
-          }
-        }
-        self.chartFactory.init()
-      })
-
-      this.server.on('addProduct', function (product) {
-        self.bindProduct(self.pcm.addProduct(product, true))
-      })
-
-      this.server.on('renameFeature', function (data) {
-        var feature = self.pcm.featuresById[data.featureId]
-        feature.name = data.name
-        feature.computeWidth()
-        if (feature.fixed) self.computeFixedWidth()
-      })
-
-      this.server.on('addFeature', function (data) {
-        //console.log(data)
-        data = self.pcm.addFeature(data)
-        self.bindFeature(data.feature)
-        self.pcmFeatures.appendChild(data.feature.div)
-        self.pcmProducts.appendChild(data.feature.column)
-        data.feature.computeWidth()
-        self.configuratorContent.appendChild(self.createFilter(data.feature).div)
-        for (var i in data.cellsByProductId) {
-          self.bindCell(data.cellsByProductId[i])
-        }
-      })
-
-      this.server.on('removeFeature', function (featureId) {
-        var feature = self.pcm.featuresById[featureId]
-        if (feature) {
-          if (feature.fixed) {
-            self.fixedFeaturesName.removeChild(feature.div)
-            self.fixedFeaturesColumn.removeChild(feature.column)
-            self.computeFixedWidth()
-          } else {
-            self.pcmFeatures.removeChild(feature.div)
-            self.pcmProducts.removeChild(feature.column)
-          }
-          self.configuratorContent.removeChild(self.filtersByFeatureId[featureId].div)
-          self.pcm.removeFeature(featureId)
-        }
-      })
-
-      this.server.on('editPCM', function (data) {
-        self.pcm.name = data.name
-        self.pcm.source = data.source
-        self.pcm.author = data.author
-        self.pcm.license = data.license
-        self.pcm.description = data.description
-        self.updatePCMData()
-      })
-
-      this.server.on('message', function (data) {
-        self.chatMessageList.innerHTML += '<div class="chatMessage"><div class="chatMessagePseudo">' + data.pseudo + '</div>'
-          + '<div class="chatMessageContent">' + data.message + '</div></div>'
-        if (self.chatAutoscroll) {
-          self.chatMessageList.scrollTop = self.chatMessageList.scrollHeight
+          })(packets[p].action, packets[p].data)
         }
 
-        if (!self.chatVisible) {
-          self.chatButtonBadge.innerHTML = ++self.chatUnreadMessage
-          self.chatButtonBadge.className = 'badge visible'
+        for (var f = 0, lf = featuresToUpdate.length; f < lf; f++) {
+          var feature = self.pcm.featuresById[featuresToUpdate[f]]
+          feature.computeData()
+          var filter = self.filtersByFeatureId[feature.id]
+          var matchAll = filter.matchAll
+          filter.buildFilter()
+          if (!matchAll) self.filterChanged(filter)
+          feature.computeWidth()
+          if (feature.fixed) self.computeFixedWidth()
         }
+
+        if (initChartFactory) self.chartFactory.init()
       })
     }
   }
@@ -942,9 +950,26 @@ class Editor {
   }
 
   emit (action, data) {
+    var self = this
+
     if (this.server == null) console.log('No server')
     else {
-      this.server.emit(action, data)
+      if (action == 'handshake') this.server.emit(action, data)
+      else {
+        if (this.sendPacketsTimeout) clearTimeout(this.sendPacketsTimeout)
+
+        this.packets.push({
+          action: action,
+          data: data
+        })
+
+        this.sendPacketsTimeout = setTimeout(function () {
+          //console.log('send ' + self.packets.length + ' packets (' + JSON.stringify(self.packets).length + ' B)')
+          self.server.emit('packets', self.packets)
+          self.packets = []
+          self.sendPacketsTimeout = null
+        }, 100)
+      }
     }
   }
 }
