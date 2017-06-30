@@ -65,9 +65,13 @@ function importPCM (file = false) {
               ? res.error.message
               : 'An error that can\'t be displayed here occured, check the console (Ctrl+Shift+I).'
           }
-        } else {
+        } else if (res.pcm) {
           window.location = '/pcm/' + res.pcm
-        }
+        } else {
+		  $('#importLoading').fadeOut()
+		  errorDiv.innerHTML = 'Wtf error check console'
+		  console.log(res)
+		}
       }
       r.send(formData)
     }})

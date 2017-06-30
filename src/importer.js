@@ -17,10 +17,14 @@ module.exports = function (src, callback) {
       callback('Unknown import source', null)
     }
   } else if (src.file) {
-    if (src.file.mimetype === 'text/csv') {
+	  var reg = /\.(\S+)$/.exec(src.file.originalname)
+	  var type = reg
+	    ? reg[1]
+		: null
+    if (type === 'csv') {
       importFromCSV(src, callback)
     } else {
-      callback('Unsuported file type ' + src.file.mimetype, null)
+      callback('Unsuported file type ' + type, null)
     }
   } else {
     callback('Unknown import source', null)

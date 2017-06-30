@@ -63,7 +63,7 @@ app.get('/api/:id', function (req, res) {
 	db.getPCM(req.params.id, function (err, pcm) {
 		res.setHeader('Content-Type', 'application/json')
 		if (err) {
-			res.send(JSON.stringify({error: err}))
+			res.send(JSON.stringify({error: typeof err == 'string' ? err : err.message || 'Unknown error'}))
 		} else {
 			res.send(JSON.stringify(pcm))
 		}
@@ -109,11 +109,11 @@ app.post('/import', upload.single('file'), function (req, res) {
 	}, function (err, pcm) {
 		fs.unlinkSync(req.file.path)
 		if (err) {
-			res.send({error: err.message})
+			res.send({error: typeof err == 'string' ? err : err.message || 'Unknown error'})
 		} else {
 			db.savePCM(pcm, function (err, res2) {
 				if (err) {
-					res.send({error: err.message})
+					res.send({error: typeof err == 'string' ? err : err.message || 'Unknown error'})
 				} else {
 					res.send({pcm: res2.insertedId})
 				}

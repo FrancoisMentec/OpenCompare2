@@ -469,6 +469,10 @@ class Editor {
       if (data == null) {
         alert('pcm ' + self.pcmId + ' doesn\'t exists')
       } else if (typeof data.error !== 'undefined') {
+		console.error(data.error)
+		var message = typeof data == 'string'
+		  ? data
+		  : data.message || 'Unknown error'
         alert(data.error)
       } else {
         self.pcm = new PCM(data, true)
@@ -888,7 +892,7 @@ class Editor {
               for (var i in data.cellsByProductId) {
                 self.bindCell(data.cellsByProductId[i])
               }
-              this.updatePCMView()
+              self.updatePCMView()
               initChartFactory = true
             } else if (action == 'removeFeature') {
               var feature = self.pcm.featuresById[data]
