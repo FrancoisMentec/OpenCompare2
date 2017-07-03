@@ -113,7 +113,7 @@ class PCM {
    * @param {number} viewHeight - the height of the view (the visible part)
    * @param {number} productHeight - the height of a products (default 48, the height of a data table line in material design)
    */
-  updateView (scrollTop, viewHeight, productHeight = 48) {
+  updateColumns (scrollTop, viewHeight, productHeight = 48) {
     if (browser) {
       for (var f = 0, lf = this.features.length; f < lf; f++) {
         this.features[f].updateColumn(scrollTop, viewHeight, productHeight)

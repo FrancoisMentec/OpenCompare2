@@ -138,6 +138,11 @@ class Feature {
     }
   }
 
+  /**
+   * Compute the width of the column so every cell will fit in
+   * Warning: it will add every cell the column (even not shown, same than updateColumn(0, infinity)), so it's quite slow on big pcm
+   * TODO: image width computation
+   */
   computeWidth () {
     this.div.style.width = 'auto'
     this.column.style.width = 'auto'
@@ -145,8 +150,8 @@ class Feature {
     var width = this.div.offsetWidth
 
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
-      var div = this.pcm.products[p].cellsByFeatureId[this.id].div
-      if (div.offsetWidth > width) width = div.offsetWidth
+      var divWidth = stringMeter.width(this.pcm.products[p].cellsByFeatureId[this.id].div.innerText, 13, 'Roboto-Regular') + 56 // 56 = padding
+      if (divWidth > width) width = divWidth
     }
 
     this.div.style.width = width + 'px'

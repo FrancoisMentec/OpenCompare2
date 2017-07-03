@@ -159,3 +159,29 @@ function initDrop () {
     }
   })
 }
+
+// Add a feed back button to the body
+function addFeedbackButton () {
+  var feedBackButton = document.createElement('button')
+  feedBackButton.setAttribute('id', 'feedbackButton')
+  feedBackButton.innerHTML = 'feedback'
+  feedBackButton.addEventListener('click', function () {
+    var feedbackBody = encodeURIComponent('\n\n\n>**Informations :**\n>source: [' + window.location + '](' + window.location + ')')
+    var feedBackPopup = new Popup('Feedback', 'There is no built-in feedback system, we\'re using github instead. ' +
+      'So you need to create a github account, it\'s not a big deal, and it make feedback management easier. Thank you for your understanding.<br><br>' +
+      '<a href="https://github.com/FrancoisMentec/OpenCompare2/issues/new?labels=feedback&body=' + feedbackBody + '" target="_blank">Submit a feedback</a> or ' +
+      '<a href="https://github.com/FrancoisMentec/OpenCompare2/issues/new?labels=bug&body=' + feedbackBody + '" target="_blank">report a bug.</a><br><br>' +
+      'Thank you, your feedback is greatly appreciated.',
+      {
+        'OK': function () {
+          feedBackPopup.delete()
+        }
+      })
+    feedBackPopup.show()
+  })
+  document.body.appendChild(feedBackButton)
+}
+
+window.onload = function () {
+  addFeedbackButton()
+}

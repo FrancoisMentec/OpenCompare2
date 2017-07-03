@@ -342,7 +342,9 @@ class Editor {
       this._view = value
       this.viewsButtons[this.view].className = 'active'
       this.views[this.view].style.display = 'block'
-      if (this.view === 'chart' && this.chartFactory.chart == null) {
+      if (this.view === 'pcm' && this.pcm != null) {
+        this.updatePCMView()
+      } else if (this.view === 'chart' && this.chartFactory.chart == null) {
         this.chartFactory.drawChart('productChart')
       }
     }
@@ -521,6 +523,8 @@ class Editor {
 
     this.computeFeaturesWidth()
 
+    this.updatePCMView()
+
     this.chartFactory.init()
 
     this.connect()
@@ -530,7 +534,7 @@ class Editor {
     var height = this.pcm.productsShown * 48 // 48 is the height of a product
     this.fixedFeaturesColumn.style.height = height + 'px'
     this.pcmProducts.style.height = height + 'px'
-    this.pcm.updateView(this.pcmDiv.scrollTop, this.pcmDiv.clientHeight - 56)
+    this.pcm.updateColumns(this.pcmDiv.scrollTop, this.pcmDiv.clientHeight - 56)
   }
   /**
    * Compute the width of every features

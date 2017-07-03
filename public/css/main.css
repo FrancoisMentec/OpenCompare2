@@ -31,3 +31,22 @@ html, body {
   font-family: Roboto-Thin;
   font-size: 3em;
 }
+
+#feedbackButton {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  z-index: 3;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  height: 24px;
+  line-height: 24px;
+  font-family: Roboto-Regular;
+  width: 150px;
+  color: #616161;
+  background-color: white;
+  border: 1px solid #BDBDBD;
+}
+
+#feedbackButton:hover {
+  background-color: #EEEEEE;
+}
