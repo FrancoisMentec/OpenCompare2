@@ -71,6 +71,7 @@ class ChartFactory {
       fdiv.innerHTML = 'None'
       this.featureImageSelect.appendChild(fdiv)
     }
+
     var f1 = false
     var f2 = false
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
@@ -190,11 +191,11 @@ class ChartFactory {
   }
 
   colorBrightness (color) {
-    var c = color.substring(1)      // strip #
-    var rgb = parseInt(c, 16)   // convert rrggbb to decimal
-    var r = (rgb >> 16) & 0xff  // extract red
-    var g = (rgb >>  8) & 0xff  // extract green
-    var b = (rgb >>  0) & 0xff  // extract blue
+    var c = color.substring(1) // strip #
+    var rgb = parseInt(c, 16) // convert rrggbb to decimal
+    var r = (rgb >> 16) & 0xff // extract red
+    var g = (rgb >>  8) & 0xff // extract green
+    var b = (rgb >>  0) & 0xff // extract blue
 
     return 0.2126 * r + 0.7152 * g + 0.0722 * b // per ITU-R BT.709
   }
@@ -464,33 +465,37 @@ class ChartFactory {
     } else if (this.chart === 'pieChart') { // Pie Chart ------------------------------------------------------------------------
       this.showDivs('feature0')
 
-      var values = []
-      var occurrences = {}
-      var total = 0
+      this.values = []
+      this.occurrences = {}
+      this.total = 0
 
       for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
         var cell = this.pcm.products[p].cellsByFeatureId[this.feature0.id]
 
-        if (this.pcm.products[p].match) {
-          if (cell.type === 'multiple') {
-            for (var i = 0, li = cell.value.length; i < li; i++) {
-              total++
-              if (typeof occurrences[cell.value[i]] === 'undefined') {
-                values.push(cell.value[i])
-                occurrences[cell.value[i]] = 1
-              } else occurrences[cell.value[i]]++
+        if (cell.type === 'multiple') {
+          for (var i = 0, li = cell.value.length; i < li; i++) {
+            if (typeof this.occurrences[cell.value[i]] === 'undefined') {
+              this.values.push(cell.value[i])
+              this.occurrences[cell.value[i]] = 0
             }
-          } else {
-            total++
-            if (typeof occurrences[cell.value] === 'undefined') {
-              values.push(cell.value)
-              occurrences[cell.value] = 1
-            } else occurrences[cell.value]++
+            if (cell.product.match) {
+              this.total++
+              this.occurrences[cell.value[i]]++
+            }
+          }
+        } else {
+          if (typeof this.occurrences[cell.value] === 'undefined') {
+            this.values.push(cell.value)
+            this.occurrences[cell.value] = 0
+          }
+          if (cell.product.match) {
+            this.total++
+            this.occurrences[cell.value]++
           }
         }
       }
 
-      values.sort()
+      this.values.sort()
 
       this.radius = Math.min(this.width, this.height) / 2 - 10
 
@@ -499,47 +504,47 @@ class ChartFactory {
         .innerRadius(0)
 
       this.labelArc = d3.arc()
-        .outerRadius(self.radius - 10)
-        .innerRadius(self.radius - 10)
+        .outerRadius(self.radius / 2)
+        .innerRadius(self.radius / 2)
 
       this.pie = d3.pie()
         .sort(null)
-        .value(function(d) { return occurrences[d] })
+        .value(function (d) { return self.occurrences[d] })
 
       this.pieChart = this.svg.append('g')
         .attr('class', 'pieChart')
         .attr('transform', 'translate(' + this.width / 2 + ',' + this.height / 2 + ')')
 
-      this.node = self.pieChart.selectAll('.arc')
-        .data(self.pie(values))
-        .enter().append('g')
-        .attr('class', 'arc')
-
-      this.path = this.node.append('path')
-        .style('fill', function (d) { return d.color = self.valueToColor(d.data) })
-        .transition().delay(function (d, i) {
-          var sum = 0
-          for (var j = 0; j < i; j++) {
-            sum += occurrences[values[j]]
-          }
-          return d._delay = sum * TRANSITION_DURATION / total
-        }).duration(function (d) {
-          return d._duration = occurrences[d.data] * TRANSITION_DURATION / total
+      this.path = self.pieChart.datum(this.values).selectAll('.arc')
+        .data(self.pie)
+        .enter().append('path')
+        .style('fill', function (d) { return self.valueToColor(d.data) })
+        .each(function (d) {
+          this._current = d
         })
+
+      this.path.transition().delay(function (d, i) {
+          return self.delay(d, i)
+        })
+        .duration(function (d) {
+          return self.duration(d)
+        })
+        .ease(d3.easeLinear)
         .attrTween('d', function (d) {
-      		var i = d3.interpolate(d.startAngle + 0.1, d.endAngle)
+      		var i = d3.interpolate(d.startAngle, d.endAngle)
       		return function (t) {
-      			d.endAngle = i(t)
-      			return self.arc(d)
+      			return self.arc({
+              startAngle: d.startAngle,
+              endAngle: i(t)
+            })
         	}
   		  })
 
-      this.node.append('text')
+      this.text = this.pieChart.datum(this.values).selectAll('.arc')
+        .data(self.pie)
+        .enter().append('text')
         .attr('transform', function (d) {
           var angle = (d.startAngle + d.endAngle) * 57.2958 / 2
-          d._anchor = angle < 180
-            ? 'end'
-            : 'start'
           angle = angle < 180
             ? angle - 90
             : angle + 90
@@ -548,35 +553,59 @@ class ChartFactory {
         })
         .attr('dy', '.35em')
         .attr('fill', function (d) {
-          return self.colorBrightness(d.color) > 180
+          return self.colorBrightness(self.valueToColor(d.data)) > 180
             ? 'black'
             : 'white'
         })
-        .attr('text-anchor', function (d) {
-          return d._anchor
+        .attr('text-anchor', 'middle')
+        .text(function (d) {
+          return d.data
         })
-        .text(function (d) { return (d.endAngle - d.startAngle) * self.radius > 50
-          ? d.data
-          : ''
-         })
-         .attr('opacity', '0')
-         .transition().delay(function (d) {
-           return d._delay
-         }).duration(function (d) {
-           return d._duration
-         }).attr('opacity', '1')
+        .attr('opacity', '0')
+
+      this.text.transition().delay(function (d, i) {
+          return self.delay(d, i)
+        })
+        .duration(function (d) {
+          return self.duration(d)
+        }).attr('opacity', function (d) { return (d.endAngle - d.startAngle) * self.radius > 50
+          ? '1'
+          : '0'
+        })
 
 
-      this.node.append('title')
+      this.path.append('title')
         .text(function (d) {
           return self.feature0.name + ' : ' + d.data + '\n'
-            + 'occurences : ' + occurrences[d.data] + ' (' + (Math.round(occurrences[d.data] * 10000 / total) / 100) + '%)'
+            + 'occurences : ' + self.occurrences[d.data] + ' (' + (Math.round(self.occurrences[d.data] * 10000 / self.total) / 100) + '%)'
         })
     } else {
       this.drawn = false
     }
   }
 
+  /**
+   * Compute the delay of a transition for d3
+   */
+  delay (d, i) {
+    var sum = 0
+    for (var j = 0; j < i; j++) {
+      sum += this.occurrences[this.values[j]]
+    }
+    return sum * TRANSITION_DURATION / this.total
+  }
+
+  /**
+   * Compute the duration of a transition for d3
+   */
+  duration (d, i) {
+    return this.occurrences[d.data] * TRANSITION_DURATION / this.total
+  }
+
+  /**
+   * Update the chart
+   * @param {string} change - The attribute which changed, if null it's the configurator
+   */
   updateChart (change = null) {
     var self = this
 
@@ -740,6 +769,64 @@ class ChartFactory {
           ? 'visible'
           : 'hidden'
       })
+    } else if (this.chart == 'pieChart') { // Pie Chart ------------------------------------------------------------------------
+      if (change == 'feature0') {
+        this.drawChart()
+      } else {
+        this.values = []
+        this.occurrences = {}
+        this.total = 0
+
+        for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
+          var cell = this.pcm.products[p].cellsByFeatureId[this.feature0.id]
+
+          if (cell.type === 'multiple') {
+            for (var i = 0, li = cell.value.length; i < li; i++) {
+              if (typeof this.occurrences[cell.value[i]] === 'undefined') {
+                this.values.push(cell.value[i])
+                this.occurrences[cell.value[i]] = 0
+              }
+              if (cell.product.match) {
+                this.total++
+                this.occurrences[cell.value[i]]++
+              }
+            }
+          } else {
+            if (typeof this.occurrences[cell.value] === 'undefined') {
+              this.values.push(cell.value)
+              this.occurrences[cell.value] = 0
+            }
+            if (cell.product.match) {
+              this.total++
+              this.occurrences[cell.value]++
+            }
+          }
+        }
+
+        this.path.data(this.pie).transition().duration(TRANSITION_DURATION).attrTween("d", function (d) {
+          var i = d3.interpolate(this._current.startAngle, d.startAngle)
+          var j = d3.interpolate(this._current.endAngle, d.endAngle)
+          this._current = d
+          return function (t) {
+            return self.arc({
+              startAngle: i(t),
+              endAngle: j(t)
+            })
+          }
+        })
+
+        this.text.data(this.pie).transition().duration(TRANSITION_DURATION).attr('transform', function (d) {
+          var angle = (d.startAngle + d.endAngle) * 57.2958 / 2
+          angle = angle < 180
+            ? angle - 90
+            : angle + 90
+          return 'translate(' + self.labelArc.centroid(d) + ')'
+            + ', rotate(' + angle + ')'
+        }).attr('opacity', function (d) { return (d.endAngle - d.startAngle) * self.radius > 50
+          ? '1'
+          : '0'
+        })
+      }
     } else {
       this.drawChart()
     }
