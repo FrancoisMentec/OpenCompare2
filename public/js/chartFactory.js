@@ -308,6 +308,11 @@ class ChartFactory {
     if (this.chart === 'productChart') { // Product Chart ------------------------------------------------------------------------
       this.showDivs('nodeSize', 'featureImage', 'feature1', 'feature2')
 
+      if (this.x == null || this.y == null) {
+        console.log('x == null or y == null')
+        return
+      }
+
       this.xMin = self.x.min - (self.x.max - self.x.min) * 0.05
       this.xMax = self.x.max + (self.x.max - self.x.min) * 0.05
 

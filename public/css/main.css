@@ -39,7 +39,7 @@ html, body {
   z-index: 3;
   transform: translate(-50%, -50%) rotate(-45deg);
   height: 24px;
-  line-height: 24px;
+  line-height: 22px;
   font-family: Roboto-Regular;
   width: 150px;
   color: #616161;

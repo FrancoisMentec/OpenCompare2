@@ -45,10 +45,24 @@ function importFromOpenCompare (id, callback) {
        try {
          var pcm = JSON.parse(responseString)
          pcm.source = 'https://opencompare.org/pcm/' + id
+         var featureIdGen = 0
+         var productIdGen = 0
+         for (var f in pcm.features) {
+           var id = /\d+/.exec(f)[0]
+           if (id > featureIdGen) featureIdGen = id
+         }
+         for (var p in  pcm.products) {
+           pcm.products[p].id = p
+           var id = /\d+/.exec(p)[0]
+           if (id > productIdGen) productIdGen = id
+         }
+         pcm.featureIdGen = featureIdGen + 1
+         pcm.productIdGen = productIdGen + 1
          pcm = new PCM(pcm, true)
          pcm.retype()
          callback(null, pcm)
        } catch (err) {
+         console.error(err)
          callback(err, null)
        }
      })
