@@ -18,7 +18,9 @@
           var div = document.createElement('span')
           div.style.fontFamily = font
           div.style.fontSize = size + 'px'
-          div.innerHTML = str
+          div.innerHTML = str == ' '
+            ? '&nbsp;'
+            : str
           this.div.appendChild(div)
           this.fonts[font][size][str] = {
             width: div.getBoundingClientRect().width

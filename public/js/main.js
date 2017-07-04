@@ -160,7 +160,9 @@ function initDrop () {
   })
 }
 
-// Add a feed back button to the body
+/**
+ * Add a feed back button to the body
+ */
 function addFeedbackButton () {
   var feedBackButton = document.createElement('button')
   feedBackButton.setAttribute('id', 'feedbackButton')

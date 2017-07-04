@@ -150,7 +150,7 @@ class Feature {
     var width = this.div.offsetWidth
 
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
-      var divWidth = stringMeter.width(this.pcm.products[p].cellsByFeatureId[this.id].div.innerText, 13, 'Roboto-Regular') + 56 // 56 = padding
+      var divWidth = stringMeter.width(this.pcm.products[p].cellsByFeatureId[this.id].div.innerText, 13, 'Roboto-Regular') + 56 + 1 // 56 = padding, 1 for error
       if (divWidth > width) width = divWidth
     }
 

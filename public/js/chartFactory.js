@@ -461,7 +461,7 @@ class ChartFactory {
           return '#009688' // Teal 500
         })
 
-      this.titles = this.node.append('title')
+      this.title = this.node.append('title')
         .text(function (p) {
           return self.pcm.primaryFeature.name + ': ' + p.cellsByFeatureId[self.pcm.primaryFeatureId].value + '\n'
             + self.feature1.name + ': ' + p.cellsByFeatureId[self.feature1.id].value + '\n'
@@ -579,7 +579,7 @@ class ChartFactory {
         })
 
 
-      this.path.append('title')
+      this.title = this.path.append('title')
         .text(function (d) {
           return self.feature0.name + ' : ' + d.data + '\n'
             + 'occurences : ' + self.occurrences[d.data] + ' (' + (Math.round(self.occurrences[d.data] * 10000 / self.total) / 100) + '%)'
@@ -762,7 +762,7 @@ class ChartFactory {
             return 'translate(' + p.x + ',' + p.y + ')'
           })
 
-        this.titles.text(function (p) {
+        this.title.text(function (p) {
             return self.pcm.primaryFeature.name + ': ' + p.cellsByFeatureId[self.pcm.primaryFeatureId].value + '\n'
               + self.feature1.name + ': ' + p.cellsByFeatureId[self.feature1.id].value + '\n'
               + self.feature2.name + ': ' + p.cellsByFeatureId[self.feature2.id].value
@@ -831,6 +831,11 @@ class ChartFactory {
           ? '1'
           : '0'
         })
+
+        this.title.text(function (d) {
+            return self.feature0.name + ' : ' + d.data + '\n'
+              + 'occurences : ' + self.occurrences[d.data] + ' (' + (Math.round(self.occurrences[d.data] * 10000 / self.total) / 100) + '%)'
+          })
       }
     } else {
       this.drawChart()

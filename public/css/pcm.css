@@ -243,6 +243,8 @@
   color: #212121; /* gray 900 */
   height: 48px;
   line-height: 48px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pcmCell:hover {

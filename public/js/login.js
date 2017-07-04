@@ -41,7 +41,7 @@ function getUser () {
       userPseudo.innerHTML = user.pseudo
       loginButton.style.display = 'none'
       logoutButton.style.display = 'inline-block'
-      if (typeof editor !== 'undefined') editor.connect()
+      if (editor && editor.connect) editor.connect()
     } else {
       userPseudo.innerHTML = ''
       loginButton.style.display = 'inline-block'
