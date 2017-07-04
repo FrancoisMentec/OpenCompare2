@@ -1,5 +1,5 @@
 function search () {
-  window.location = '/search/' + encodeURIComponent($('#searchInput').val())
+  window.location = '/search/' + $('#searchInput').val()
 }
 
 function searchKeyPress (event) {
@@ -13,7 +13,7 @@ function importPCM (file = false) {
     var val = $('#searchInput').val()
     if (val.length > 0) {
       $('#importLoading').fadeIn()
-      window.location = '/import/' + encodeURIComponent(val)
+      window.location = '/import/' + val
     } else {
       var popup = new Popup('Import instruction',
         'For import instructions check <a href="https://github.com/FrancoisMentec/OpenCompare2#import-data">GitHub</a>.',

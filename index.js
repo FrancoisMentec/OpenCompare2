@@ -162,7 +162,7 @@ app.get('/import*', function (req, res) {
 					if (err) {
 						res.render('error', {error: err})
 					} else {
-						res.redirect('/search/' + encodeURIComponent(source))
+						res.redirect('/search/' + source)
 					}
 				})
 			} else {
