@@ -12,6 +12,7 @@
   },
   "author": "",
   "license": "ISC",
+  "url": "https://opencompare.org/",
   "dependencies": {
     "ace-builds": "^1.2.6",
     "bcrypt": "^1.0.2",
