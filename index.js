@@ -36,7 +36,7 @@ const ENVIRONEMENT = params['env'] || 'dev'
 console.log('Environement: ' + ENVIRONEMENT)
 
 const PORT = ENVIRONEMENT === 'prod'
-	? 80
+	? 9009 // Change to 80 or anything else if needed
 	: 9009
 
 const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 14 // cookie expire in 2 weeks
