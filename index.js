@@ -16,7 +16,29 @@ var importer = require('./src/importer.js')
 var isMail = require('./public/js/typeDetection.js').isMail
 var editSessionManager = require('./src/editSessionManager.js')(db)
 
-const PORT = 9009
+// params
+var params = {}
+for (var i = 0, li = process.argv.length; i < li; i++) {
+	var param = process.argv[i]
+	if (param.startsWith('-')) {
+		var value = i < li - 1
+			? process.argv[++i]
+			: null
+		if (value) {
+			param = /-{1,2}(.+)/.exec(param)[1]
+			params[param] = value
+		}
+	}
+}
+
+// Const
+const ENVIRONEMENT = params['env'] || 'dev'
+console.log('Environement: ' + ENVIRONEMENT)
+
+const PORT = ENVIRONEMENT === 'prod'
+	? 80
+	: 9009
+
 const COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 14 // cookie expire in 2 weeks
 
 // app settings
@@ -207,5 +229,9 @@ app.get('*', function (req, res) {
 
 // start server
 server.listen(PORT, function () {
-    console.log('Started OpenCompare2 on port ' + PORT)
+  console.log('Started OpenCompare2 on port ' + PORT)
+}).on('error', function (err) {
+	console.error(err)
+	console.error('Check if port ' + PORT + ' is free, and run it as admin.')
+	process.exit(-1)
 })

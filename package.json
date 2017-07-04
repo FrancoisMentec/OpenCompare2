@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preinstall": "npm install -g forever",
+    "start": "forever start -o out.log -e err.log index.js --env prod",
+    "stop": "forever stop index.js",
+    "restart": "forever restart -o out.log -e err.log index.js --env prod"
   },
   "author": "",
   "license": "ISC",
