@@ -11,12 +11,12 @@ module.exports = function (src, callback) {
   if (typeof src === 'string') {
     if ((regexRes = /([a-z0-9]{24})/g.exec(src)) != null) {
       importFromOpenCompare(regexRes[1], callback)
-    } else if (isUrl(src)/*(regexRes = /(\w+).wikipedia.org\/wiki\/([^#\/]+)/.exec(src)) != null*/) {
+    } else if (isUrl(src)) {
       importFromUrl(src, callback)
     } else {
-      callback('Unknown import source', null)
+      callback('Unknown import source : ' + src, null)
     }
-  } else if (src.file) {
+  } else if (src && src.file) {
 	  var reg = /\.(\S+)$/.exec(src.file.originalname)
 	  var type = reg
 	    ? reg[1]
@@ -29,7 +29,6 @@ module.exports = function (src, callback) {
   } else {
     callback('Unknown import source', null)
   }
-
 }
 
 function importFromOpenCompare (id, callback) {

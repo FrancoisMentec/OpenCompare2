@@ -71,12 +71,16 @@ app.get('/search', function (req, res) {
 	})
 })
 
-app.get('/search/:search', function (req, res) {
-	db.searchPCM(req.params.search, function (err, pcms) {
+app.get('/search*', function (req, res) {
+	var reg = /search\/(.*)/.exec(req.url)
+	var search = reg
+		? decodeURIComponent(reg[1]) || null
+		: null
+	db.searchPCM(search, function (err, pcms) {
 		if (err) {
 			res.render('error', {error: err})
 		} else {
-			res.render('search', {search: req.params.search, pcms: pcms})
+			res.render('search', {search: search, pcms: pcms})
 		}
 	})
 })
@@ -144,8 +148,12 @@ app.post('/import', upload.single('file'), function (req, res) {
 	})
 })
 
-app.get('/import/:src', function (req, res) {
-	importer(req.params.src, function (err, pcm, source) {
+app.get('/import*', function (req, res) {
+	var reg = /import\/(.*)/.exec(req.url)
+	var src = reg
+		? decodeURIComponent(reg[1]) || null
+		: null
+	importer(src, function (err, pcm, source) {
 		if (err) {
 			res.render('error', {error: err})
 		} else {

@@ -125,3 +125,7 @@ b {
 .textSecondaryCaption {
   color: #FF7043; /* deep orange 400 */
 }
+
+.center {
+  text-align: center;
+}
