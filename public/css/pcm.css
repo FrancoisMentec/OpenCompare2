@@ -93,26 +93,26 @@
 }
 
 #pcm {
-  position: relative;
   width: 100%;
-  max-height: 100%;
-  padding-top: 56px;
-  overflow: auto;
+  height: 100%;
 }
 
 #pcmFeatures {
-  position: absolute;
-  top: 0;
-  /*max-width: calc(100% - 15px);*/
+  position: relative;
   height: 56px;
+  padding-right: 15px; /* for scroll bar */
   white-space: nowrap;
   background-color: white;
   z-index: 3;
   overflow: hidden;
+  border-bottom: 1px solid #BDBDBD;
 }
 
-.cellEditVisible #pcmFeatures {
-  top: 56px;
+#pcmContent {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 56px);
+  overflow: auto;
 }
 
 #pcmProducts {
@@ -127,6 +127,7 @@
   background-color: white;
   border-right: 1px solid #BDBDBD;
   z-index: 2;
+  white-space: nowrap;
 }
 
 #fixedFeaturesName:empty , #fixedFeaturesColumn:empty {
@@ -166,7 +167,7 @@
 }
 
 .pcmFeature:hover {
-  border-bottom: 2px solid #009688; /* Teal 500 */
+  border-bottom: 3px solid #009688; /* Teal 500 */
 }
 
 .increase, .decrease {

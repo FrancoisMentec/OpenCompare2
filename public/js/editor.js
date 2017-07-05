@@ -95,14 +95,15 @@ class Editor {
 
     this.pcmView = document.getElementById('pcmView')
     this.pcmDiv = document.getElementById('pcm')
-    this.pcmDiv.addEventListener('scroll', function (event) {
-      var top = self.pcmDiv.scrollTop
-      self.pcmFeatures.style.top = top + 'px'
+    this.pcmContent  = document.getElementById('pcmContent')
+    this.pcmContent.addEventListener('scroll', function (event) {
+      var top = self.pcmContent.scrollTop
       self.pcmFeatures.className = top > 0
         ? 'scrolled'
         : ''
-      var left = self.pcmDiv.scrollLeft
-      self.fixedFeaturesName.style.left = self.fixedFeaturesColumn.style.left = left + 'px'
+      var left = self.pcmFeatures.scrollLeft = self.pcmContent.scrollLeft
+      self.fixedFeaturesName.style.left = self.pcmFeatures.scrollLeft + 'px'
+      self.fixedFeaturesColumn.style.left = left + 'px'
       self.configurator.className = self.fixedFeaturesName.className = self.fixedFeaturesColumn.className = left > 0
         ? 'scrolledRight'
         : ''
@@ -534,7 +535,7 @@ class Editor {
     var height = this.pcm.productsShown * 48 // 48 is the height of a product
     this.fixedFeaturesColumn.style.height = height + 'px'
     this.pcmProducts.style.height = height + 'px'
-    this.pcm.updateColumns(this.pcmDiv.scrollTop, this.pcmDiv.clientHeight - 56)
+    this.pcm.updateColumns(this.pcmContent.scrollTop, this.pcmContent.clientHeight)
   }
   /**
    * Compute the width of every features
