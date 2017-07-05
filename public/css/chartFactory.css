@@ -51,6 +51,10 @@ svg > text {
   fill: #9E9E9E; /* gray 500 */
 }
 
+svg > .textWhite {
+  fill: white;
+}
+
 line {
   stroke: #9E9E9E; /* gray 500 */
 }

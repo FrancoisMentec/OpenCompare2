@@ -9,32 +9,53 @@
       this.fonts = {}
     }
 
+    getChar (char, size, font) {
+      if (typeof char != 'string' || char.length != 1) return null
+
+      if (typeof this.fonts[font] == 'undefined') this.fonts[font] = {}
+      if (typeof this.fonts[font][size] == 'undefined') this.fonts[font][size] = {}
+      if (typeof this.fonts[font][size][char] == 'undefined') {
+        var div = document.createElement('span')
+        div.style.fontFamily = font
+        div.style.fontSize = size + 'px'
+        div.innerHTML = char == ' '
+          ? '&nbsp;'
+          : char
+        this.div.appendChild(div)
+        this.fonts[font][size][char] = {
+          width: div.getBoundingClientRect().width,
+          height: div.getBoundingClientRect().height
+        }
+        this.div.removeChild(div)
+      }
+
+      return this.fonts[font][size][char]
+    }
+
     width (str, size = 14, font = 'Roboto-Regular') {
+      if (typeof str == 'number') str = '' + str
       if (str.length == 0) return 0
       if (str.length == 1) {
-        if (typeof this.fonts[font] == 'undefined') this.fonts[font] = {}
-        if (typeof this.fonts[font][size] == 'undefined') this.fonts[font][size] = {}
-        if (typeof this.fonts[font][size][str] == 'undefined') {
-          var div = document.createElement('span')
-          div.style.fontFamily = font
-          div.style.fontSize = size + 'px'
-          div.innerHTML = str == ' '
-            ? '&nbsp;'
-            : str
-          this.div.appendChild(div)
-          this.fonts[font][size][str] = {
-            width: div.getBoundingClientRect().width
-          }
-          this.div.removeChild(div)
-        }
-
-        return this.fonts[font][size][str].width
+        return this.getChar(str, size, font).width
       }
       var width = 0
       for (var i = 0, li = str.length; i < li; i++) {
         width += this.width(str[i], size, font)
       }
       return width
+    }
+
+    height (str, size = 14, font = 'Roboto-Regular') {
+      if (typeof str == 'number') str = '' + str
+      if (str.length == 0) return 0
+      if (str.length == 1) {
+        return this.getChar(str, size, font).height
+      }
+      var height = 0
+      for (var i = 0, li = str.length; i < li; i++) {
+        height = Math.max(height, this.height(str[i], size, font))
+      }
+      return height
     }
   }
 

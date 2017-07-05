@@ -1,6 +1,6 @@
 const CHART_PADDING = 50
-const GRADUATION_PER_PIXEL = 0.02
-const MINIMAL_GRADUATION_GAP_IN_PX = 40
+const MINIMAL_GRADUATION_GAP_IN_PX = 15
+const GRADUATION_PER_PIXEL = 1 / MINIMAL_GRADUATION_GAP_IN_PX
 const TRANSITION_DURATION = 1000
 const MAX_NODE_SIZE = 16
 
@@ -201,7 +201,7 @@ class ChartFactory {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b // per ITU-R BT.709
   }
 
-  range (min, max, size, feature = null) {
+  range (min, max, size, feature = null, round = null) {
     var range = []
     if (feature) { // clustering
       var minimalGap = (max - min) * MINIMAL_GRADUATION_GAP_IN_PX / this.chartWidth
@@ -248,6 +248,13 @@ class ChartFactory {
       }
       range.push(max)
     }
+
+    if (typeof round == 'number') {
+      for (var i = 0, li = range.length; i < li; i++) {
+        range[i] = Math.round(range[i] * round) / round
+      }
+    }
+
     return range
   }
 
@@ -300,7 +307,7 @@ class ChartFactory {
    * @param {Array} arr - An array that contains values for graduations
    * @param {function} calcX - A function that compute the pos X of the graduation
    */
-  drawXLine (name, arr = null, calcX = null) {
+  drawXAxis (name, arr = null, calcX = null) {
     var self = this
 
     if (this.xLine) this.xLine.remove()
@@ -317,7 +324,7 @@ class ChartFactory {
       .attr('x', this.width / 2)
       .attr('y', this.height - 2)
 
-    if (arr) {
+    if (arr) { // graduations
       if (this.xGraduation) this.xGraduation.remove()
       this.xGraduation = this.svg.selectAll('.xGraduations')
         .data(arr)
@@ -343,32 +350,67 @@ class ChartFactory {
         })
         .text(function (d) { return d })
         .attr('text-anchor', 'end')
-        .attr('x', function (x) { return this._x + 3 })
-        .attr('y', this.height - CHART_PADDING + 8)
+        .attr('x', function (x) { return this._x + 4 })
+        .attr('y', this.height - CHART_PADDING + 10)
         .attr('transform', function (d) {
-          return 'rotate(-60, ' + (this._x + 3) + ', ' + (self.height - CHART_PADDING + 8) + ')'
+          return 'rotate(-60, ' + (this._x + 3) + ', ' + (self.height - CHART_PADDING + 10) + ')'
         })
         .style('font-size', '11px')
     }
   }
 
   /**
-   * Draw the y line
+   * Draw the y axis
    * @param {string} name - the name of the line (ex: the name of the y feature)
+   * @param {Array} arr - An array that contains values for graduations
+   * @param {function} calcY - A function that compute the pos Y of the graduation
    */
-  drawYLine (name) {
+  drawYAxis (name, arr = null, calcY = null) {
+    if (this.yLine) this.yLine.remove()
     this.yLine = this.svg.append('line')
       .attr('x1', CHART_PADDING)
       .attr('y1', CHART_PADDING)
       .attr('x2', CHART_PADDING)
       .attr('y2', this.height - CHART_PADDING)
 
+    if (this.yName) this.yName.remove()
     this.yName = this.svg.append('text')
       .text(name)
       .attr('text-anchor', 'middle')
       .attr('transform', 'rotate(-90, 13,  ' + (this.height / 2) + ')')
       .attr('x', 13)
       .attr('y', this.height / 2)
+
+    if (arr) { // graduations
+      if (this.yGraduation) this.yGraduation.remove()
+      this.yGraduation = this.svg.selectAll('.yGraduations')
+        .data(arr)
+        .enter().append('line')
+        .each(function (d, i) {
+          this._y = calcY
+            ? calcY(d, i)
+            : d
+        })
+        .attr('x1', CHART_PADDING - 5)
+        .attr('y1', function (d) { return this._y })
+        .attr('x2', CHART_PADDING)
+        .attr('y2', function (d) { return this._y })
+
+      if (this.yGraduationText) this.yGraduationText.remove()
+      this.yGraduationText = this.svg.selectAll('.yGraduations')
+        .data(this.yGraduationsValues)
+        .enter().append('text')
+        .each(function (d, i) {
+          this._y = calcY
+            ? calcY(d, i)
+            : d
+        })
+        .text(function (d) { return d })
+        .attr('text-anchor', 'end')
+        .attr('x', CHART_PADDING - 6)
+        .attr('y', function (y) { return this._y + 3 })
+        .style('font-size', '11px')
+    }
   }
 
   /**
@@ -466,45 +508,18 @@ class ChartFactory {
       }
 
       // x
-      this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1)
+      this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1, 100)
 
-      for (var i = 0, li = this.xGraduationsValues.length; i < li; i++) {
-        this.xGraduationsValues[i] = Math.round(this.xGraduationsValues[i] * 100) / 100
-      }
-
-      this.drawXLine(this.x.name, this.xGraduationsValues, function (d, i) {
+      this.drawXAxis(this.x.name, this.xGraduationsValues, function (d, i) {
         return ((d - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
       })
 
       // y
-      this.drawYLine(this.y.name)
+      this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight, this.feature2, 100)
 
-      this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight, this.feature2)
-
-      this.yGraduation = this.svg.selectAll('.yGraduations')
-        .data(this.yGraduationsValues)
-        .enter().append('line')
-        .attr('x1', CHART_PADDING - 5)
-        .attr('y1', function (y) {
-          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
-        })
-        .attr('x2', CHART_PADDING)
-        .attr('y2', function (y) {
-          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
-        })
-
-      this.yGraduationText = this.svg.selectAll('.yGraduations')
-        .data(this.yGraduationsValues)
-        .enter().append('text')
-        .text(function (y) {
-          return Math.round(y * 100) / 100
-        })
-        .attr('text-anchor', 'end')
-        .attr('x', CHART_PADDING - 6)
-        .attr('y', function (y) {
-          return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING + 3
-        })
-        .style('font-size', '10px')
+      this.drawYAxis(this.y.name, this.yGraduationsValues, function (d, i) {
+        return self.chartHeight - ((d - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
+      })
 
       // Set the pos (x,y) of every prod
       for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
@@ -641,32 +656,32 @@ class ChartFactory {
 
       this.computeData()
 
-      var margin = this.values.length * 2 + 1 < this.chartWidth
-      var width = margin
+      this.barMargin = this.values.length * 2 + 1 < this.chartWidth
+      this.barWidth = this.barMargin
         ? (this.chartWidth - this.values.length - 1) / this.values.length
         : this.chartWidth / this.values.length
 
-      if (margin) {
-        this.drawXLine(this.feature0.name, this.values, function (d, i) {
-          return (i + 0.5) * width + CHART_PADDING + i + 1
+      if (this.barMargin) {
+        this.drawXAxis(this.feature0.name, this.values, function (d, i) {
+          return (i + 0.5) * self.barWidth + CHART_PADDING + i + 1
         })
       } else {
-        this.drawXLine(this.feature0.name)
+        this.drawXAxis(this.feature0.name)
       }
 
-      this.drawYLine('occurrences')
+      this.drawYAxis('occurrences')
 
       this.bar = this.svg.selectAll('.bar')
         .data(this.values)
         .enter().append('rect')
         .each(function (d, i) {
           this._height = (self.chartHeight - 1) * (self.occurrences[d] / self.max)
-          this._x = margin
-           ? i * width + CHART_PADDING + i + 1
-           : i * width + CHART_PADDING
+          this._x = self.barMargin
+           ? i * self.barWidth + CHART_PADDING + i + 1
+           : i * self.barWidth + CHART_PADDING
         }).attr('class', 'bar')
         .attr('x', function () { return this._x })
-        .attr('width', width)
+        .attr('width', this.barWidth)
         .attr('y', this.chartHeight - 1 + CHART_PADDING)
         .attr('height', 0)
 
@@ -679,6 +694,64 @@ class ChartFactory {
           return self.feature0.name + ' : ' + d + '\n'
             + 'occurrences : ' + self.occurrences[d]
         })
+
+      if (this.barWidth > 10) {
+        this.text = this.svg.selectAll('.text')
+          .data(this.values)
+          .enter().append('text')
+          .each(function (d, i) {
+            this._text = self.occurrences[d]
+            this._barHeight = (self.chartHeight - 1) * (self.occurrences[d] / self.max)
+            this._barX = self.barMargin
+             ? i * self.barWidth + CHART_PADDING + i + 1
+             : i * self.barWidth + CHART_PADDING
+
+            this._rotate = false
+            var fitWidth = self.barWidth >= stringMeter.width(this._text, 10, 'Roboto-Regular')
+            var fitHeight = this._barHeight >= stringMeter.height(this._text, 10, 'Roboto-Regular')
+            if (fitWidth) {
+              this._x = this._barX + self.barWidth / 2
+              this._textAnchor = 'middle'
+              if (fitHeight) {
+                this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight + 10
+              } else {
+                this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight - 2
+              }
+            } else {
+              fitWidth = self.barWidth >= stringMeter.height(this._text, 10, 'Roboto-Regular')
+              fitHeight = this._barHeight >= stringMeter.width(this._text, 10, 'Roboto-Regular')
+              this._rotate = true
+              if (fitHeight) {
+                this._x = this._barX + self.barWidth / 2 + 4
+                this._textAnchor = 'end'
+                this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight + 2
+              } else {
+                this._x = this._barX + self.barWidth / 2 + 4
+                this._textAnchor = 'start'
+                this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight - 2
+              }
+            }
+
+            this._class = fitHeight
+              ? 'textWhite'
+              : ''
+          })
+          .text(function (d) { return this._text })
+          .attr('text-anchor', function (d) { return this._textAnchor })
+          .attr('transform', function (d) {
+            return this._rotate
+              ? 'rotate(-90, ' + this._x + ', ' + this._y + ')'
+              : ''
+          })
+          .attr('x', function (d) { return this._x })
+          .attr('y', function (d) { return this._y })
+          .attr('font-size', '10px')
+          .attr('class', function (d) { return this._class || '' })
+          .attr('opacity', '0')
+
+        this.text.transition().duration(TRANSITION_DURATION)
+          .attr('opacity', '1')
+      }
     } else {
       this.drawn = false
     }
@@ -768,13 +841,9 @@ class ChartFactory {
           this.xMin = self.x.min - (self.x.max - self.x.min) * 0.05
           this.xMax = self.x.max + (self.x.max - self.x.min) * 0.05
 
-          this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1)
+          this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1, 100)
 
-          for (var i = 0, li = this.xGraduationsValues.length; i < li; i++) {
-            this.xGraduationsValues[i] = Math.round(this.xGraduationsValues[i] * 100) / 100
-          }
-
-          this.drawXLine(this.x.name, this.xGraduationsValues, function (d, i) {
+          this.drawXAxis(this.x.name, this.xGraduationsValues, function (d, i) {
             return ((d - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
           })
         }
@@ -783,36 +852,11 @@ class ChartFactory {
           this.yMin = self.y.min - (self.y.max - self.y.min) * 0.05
           this.yMax = self.y.max + (self.y.max - self.y.min) * 0.05
 
-          this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight, this.feature2)
+          this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight, this.feature2, 100)
 
-          this.yGraduation.remove()
-          this.yGraduation = this.svg.selectAll('.yGraduations')
-            .data(this.yGraduationsValues)
-            .enter().append('line')
-            .attr('x1', CHART_PADDING - 5)
-            .attr('y1', function (y) {
-              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
-            })
-            .attr('x2', CHART_PADDING)
-            .attr('y2', function (y) {
-              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
-            })
-
-          this.yGraduationText.remove()
-          this.yGraduationText = this.svg.selectAll('.yGraduations')
-            .data(this.yGraduationsValues)
-            .enter().append('text')
-            .text(function (y) {
-              return Math.round(y * 100) / 100
-            })
-            .attr('text-anchor', 'end')
-            .attr('x', CHART_PADDING - 6)
-            .attr('y', function (y) {
-              return self.chartHeight - ((y - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING + 3
-            })
-            .style('font-size', '10px')
-
-          this.yName.text(this.y.name)
+          this.drawYAxis(this.y.name, this.yGraduationsValues, function (d, i) {
+            return self.chartHeight - ((d - self.yMin) / (self.yMax - self.yMin)) * self.chartHeight + CHART_PADDING
+          })
         }
 
         for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
@@ -889,16 +933,78 @@ class ChartFactory {
         this.computeData()
 
         this.bar.each(function (d, i) {
-            this._height = (self.chartHeight - 1) * (self.occurrences[d] / self.max)
+            this._height = self.max != 0
+              ? (self.chartHeight - 1) * (self.occurrences[d] / self.max)
+              : 0
           }).transition().duration(TRANSITION_DURATION)
           .attr('y', function () { return self.chartHeight - 1 + CHART_PADDING - this._height })
           .attr('height', function () { return this._height })
 
-        this.title = this.bar.append('title')
-          .text(function (d) {
+        this.title.text(function (d) {
             return self.feature0.name + ' : ' + d + '\n'
               + 'occurrences : ' + self.occurrences[d]
           })
+
+        if (this.barWidth > 10) {
+          this.text.remove()
+          this.text = this.svg.selectAll('.text')
+            .data(this.values)
+            .enter().append('text')
+            .each(function (d, i) {
+              this._text = self.occurrences[d]
+              this._barHeight = self.max != 0
+                ? (self.chartHeight - 1) * (self.occurrences[d] / self.max)
+                : 0
+              this._barX = self.barMargin
+               ? i * self.barWidth + CHART_PADDING + i + 1
+               : i * self.barWidth + CHART_PADDING
+
+              this._rotate = false
+              var fitWidth = self.barWidth >= stringMeter.width(this._text, 10, 'Roboto-Regular')
+              var fitHeight = this._barHeight >= stringMeter.height(this._text, 10, 'Roboto-Regular')
+              if (fitWidth) {
+                this._x = this._barX + self.barWidth / 2
+                this._textAnchor = 'middle'
+                if (fitHeight) {
+                  this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight + 10
+                } else {
+                  this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight - 2
+                }
+              } else {
+                fitWidth = self.barWidth >= stringMeter.height(this._text, 10, 'Roboto-Regular')
+                fitHeight = this._barHeight >= stringMeter.width(this._text, 10, 'Roboto-Regular')
+                this._rotate = true
+                if (fitHeight) {
+                  this._x = this._barX + self.barWidth / 2 + 4
+                  this._textAnchor = 'end'
+                  this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight + 2
+                } else {
+                  this._x = this._barX + self.barWidth / 2 + 4
+                  this._textAnchor = 'start'
+                  this._y = self.chartHeight - 1 + CHART_PADDING - this._barHeight - 2
+                }
+              }
+
+              this._class = fitHeight
+                ? 'textWhite'
+                : ''
+            })
+            .text(function (d) { return this._text })
+            .attr('text-anchor', function (d) { return this._textAnchor })
+            .attr('transform', function (d) {
+              return this._rotate
+                ? 'rotate(-90, ' + this._x + ', ' + this._y + ')'
+                : ''
+            })
+            .attr('x', function (d) { return this._x })
+            .attr('y', function (d) { return this._y })
+            .attr('font-size', '10px')
+            .attr('class', function (d) { return this._class || '' })
+            .attr('opacity', '0')
+
+          this.text.transition().duration(TRANSITION_DURATION)
+            .attr('opacity', '1')
+        }
       }
     } else {
       this.drawChart()
