@@ -97,7 +97,7 @@ class Editor {
     this.pcmDiv = document.getElementById('pcm')
     this.pcmDiv.addEventListener('scroll', function (event) {
       var top = self.pcmDiv.scrollTop
-      self.pcmFeatures.style.top = top + 'px'
+      //self.pcmFeatures.style.top = top + 'px'
       self.pcmFeatures.className = top > 0
         ? 'scrolled'
         : ''

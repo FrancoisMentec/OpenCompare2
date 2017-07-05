@@ -69,3 +69,8 @@ line {
 .pieChart path {
   stroke: white;
 }
+
+/* Bar Chart */
+.bar {
+  fill: #009688; /* teal 500 */
+}

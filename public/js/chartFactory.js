@@ -46,7 +46,8 @@ class ChartFactory {
 
     this.charts = {
       productChart: {},
-      pieChart: {}
+      pieChart: {},
+      barChart: {}
     }
 
     for (var chart in this.charts) {
@@ -293,6 +294,127 @@ class ChartFactory {
     this.svg = d3.select(this.svgDiv)
   }
 
+  /**
+   * Draw the x axis
+   * @param {string} name - the name of the line (ex: the name of the x feature)
+   * @param {Array} arr - An array that contains values for graduations
+   * @param {function} calcX - A function that compute the pos X of the graduation
+   */
+  drawXLine (name, arr = null, calcX = null) {
+    var self = this
+
+    if (this.xLine) this.xLine.remove()
+    this.xLine = this.svg.append('line')
+      .attr('x1', CHART_PADDING)
+      .attr('y1', this.height - CHART_PADDING)
+      .attr('x2', this.width - CHART_PADDING)
+      .attr('y2', this.height - CHART_PADDING)
+
+    if (this.xName) this.xName.remove()
+    this.xName = this.svg.append('text')
+      .text(name)
+      .attr('text-anchor', 'middle')
+      .attr('x', this.width / 2)
+      .attr('y', this.height - 2)
+
+    if (arr) {
+      if (this.xGraduation) this.xGraduation.remove()
+      this.xGraduation = this.svg.selectAll('.xGraduations')
+        .data(arr)
+        .enter().append('line')
+        .each(function (d, i) {
+          this._x = calcX
+            ? calcX(d, i)
+            : d
+        })
+        .attr('x1', function (x) { return this._x })
+        .attr('y1', this.height - CHART_PADDING)
+        .attr('x2', function (x) { return this._x })
+        .attr('y2', this.height - CHART_PADDING + 5)
+
+      if (this.xGraduationText) this.xGraduationText.remove()
+      this.xGraduationText = this.svg.selectAll('.xGraduations')
+        .data(arr)
+        .enter().append('text')
+        .each(function (d, i) {
+           this._x = calcX
+             ? calcX(d, i)
+             : d
+        })
+        .text(function (d) { return d })
+        .attr('text-anchor', 'end')
+        .attr('x', function (x) { return this._x + 3 })
+        .attr('y', this.height - CHART_PADDING + 8)
+        .attr('transform', function (d) {
+          return 'rotate(-60, ' + (this._x + 3) + ', ' + (self.height - CHART_PADDING + 8) + ')'
+        })
+        .style('font-size', '11px')
+    }
+  }
+
+  /**
+   * Draw the y line
+   * @param {string} name - the name of the line (ex: the name of the y feature)
+   */
+  drawYLine (name) {
+    this.yLine = this.svg.append('line')
+      .attr('x1', CHART_PADDING)
+      .attr('y1', CHART_PADDING)
+      .attr('x2', CHART_PADDING)
+      .attr('y2', this.height - CHART_PADDING)
+
+    this.yName = this.svg.append('text')
+      .text(name)
+      .attr('text-anchor', 'middle')
+      .attr('transform', 'rotate(-90, 13,  ' + (this.height / 2) + ')')
+      .attr('x', 13)
+      .attr('y', this.height / 2)
+  }
+
+  /**
+   * Compute data about feature 0 (for pieChart and bar chart)
+   */
+  computeData () {
+    this.values = []
+    this.occurrences = {}
+    this.total = 0
+    this.max = 0
+
+    for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
+      var cell = this.pcm.products[p].cellsByFeatureId[this.feature0.id]
+
+      if (cell.type === 'multiple') {
+        for (var i = 0, li = cell.value.length; i < li; i++) {
+          if (typeof this.occurrences[cell.value[i]] === 'undefined') {
+            this.values.push(cell.value[i])
+            this.occurrences[cell.value[i]] = 0
+          }
+          if (cell.product.match) {
+            this.total++
+            this.occurrences[cell.value[i]]++
+            if (this.occurrences[cell.value[i]] > this.max) this.max = this.occurrences[cell.value[i]]
+          }
+        }
+      } else {
+        if (typeof this.occurrences[cell.value] === 'undefined') {
+          this.values.push(cell.value)
+          this.occurrences[cell.value] = 0
+        }
+        if (cell.product.match) {
+          this.total++
+          this.occurrences[cell.value]++
+          if (this.occurrences[cell.value] > this.max) this.max = this.occurrences[cell.value]
+        }
+      }
+    }
+
+    this.values.sort()
+  }
+
+  /**
+   * Draw a chart
+   * @param {string} chart - the name of the chart to draw, if null re-draw current chart
+   */
   drawChart (chart) {
     var self = this
 
@@ -344,52 +466,18 @@ class ChartFactory {
       }
 
       // x
-      this.xLine = this.svg.append('line')
-        .attr('x1', CHART_PADDING)
-        .attr('y1', this.height - CHART_PADDING)
-        .attr('x2', this.width - CHART_PADDING)
-        .attr('y2', this.height - CHART_PADDING)
-
       this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1)
 
-      this.xGraduation = this.svg.selectAll('.xGraduations')
-        .data(this.xGraduationsValues)
-        .enter().append('line')
-        .attr('x1', function (x) {
-          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
-        })
-        .attr('y1', self.height - CHART_PADDING)
-        .attr('x2', function (x) {
-          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
-        })
-        .attr('y2', self.height - CHART_PADDING + 5)
+      for (var i = 0, li = this.xGraduationsValues.length; i < li; i++) {
+        this.xGraduationsValues[i] = Math.round(this.xGraduationsValues[i] * 100) / 100
+      }
 
-      this.xGraduationText = this.svg.selectAll('.xGraduations')
-        .data(this.xGraduationsValues)
-        .enter().append('text')
-        .text(function (x) {
-          return Math.round(x * 100) / 100
-        })
-        .attr('text-anchor', 'middle')
-        .attr('x', function (x) {
-          return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
-        })
-        .attr('y', self.height - CHART_PADDING + 15)
-        .style('font-size', '10px')
-
-
-      this.xName = this.svg.append('text')
-        .text(this.x.name)
-        .attr('text-anchor', 'middle')
-        .attr('x', self.width / 2)
-        .attr('y', self.height - 2)
+      this.drawXLine(this.x.name, this.xGraduationsValues, function (d, i) {
+        return ((d - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
+      })
 
       // y
-      this.yLine = this.svg.append('line')
-        .attr('x1', CHART_PADDING)
-        .attr('y1', CHART_PADDING)
-        .attr('x2', CHART_PADDING)
-        .attr('y2', this.height - CHART_PADDING)
+      this.drawYLine(this.y.name)
 
       this.yGraduationsValues = this.range(this.yMin, this.yMax, this.chartHeight, this.feature2)
 
@@ -418,13 +506,7 @@ class ChartFactory {
         })
         .style('font-size', '10px')
 
-      this.yName = this.svg.append('text')
-        .text(this.y.name)
-        .attr('text-anchor', 'middle')
-        .attr('transform', 'rotate(-90, 13,  ' + (this.height / 2) + ')')
-        .attr('x', 13)
-        .attr('y', self.height / 2)
-
+      // Set the pos (x,y) of every prod
       for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
         var product = this.pcm.products[p]
         product.x = product.cellsByFeatureId[this.x.id].type === 'number'
@@ -470,37 +552,7 @@ class ChartFactory {
     } else if (this.chart === 'pieChart') { // Pie Chart ------------------------------------------------------------------------
       this.showDivs('feature0')
 
-      this.values = []
-      this.occurrences = {}
-      this.total = 0
-
-      for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
-        var cell = this.pcm.products[p].cellsByFeatureId[this.feature0.id]
-
-        if (cell.type === 'multiple') {
-          for (var i = 0, li = cell.value.length; i < li; i++) {
-            if (typeof this.occurrences[cell.value[i]] === 'undefined') {
-              this.values.push(cell.value[i])
-              this.occurrences[cell.value[i]] = 0
-            }
-            if (cell.product.match) {
-              this.total++
-              this.occurrences[cell.value[i]]++
-            }
-          }
-        } else {
-          if (typeof this.occurrences[cell.value] === 'undefined') {
-            this.values.push(cell.value)
-            this.occurrences[cell.value] = 0
-          }
-          if (cell.product.match) {
-            this.total++
-            this.occurrences[cell.value]++
-          }
-        }
-      }
-
-      this.values.sort()
+      this.computeData()
 
       this.radius = Math.min(this.width, this.height) / 2 - 10
 
@@ -582,7 +634,50 @@ class ChartFactory {
       this.title = this.path.append('title')
         .text(function (d) {
           return self.feature0.name + ' : ' + d.data + '\n'
-            + 'occurences : ' + self.occurrences[d.data] + ' (' + (Math.round(self.occurrences[d.data] * 10000 / self.total) / 100) + '%)'
+            + 'occurrences : ' + self.occurrences[d.data] + ' (' + (Math.round(self.occurrences[d.data] * 10000 / self.total) / 100) + '%)'
+        })
+    } else if (this.chart === 'barChart') { // Bar Chart ------------------------------------------------------------------------
+      this.showDivs('feature0')
+
+      this.computeData()
+
+      var margin = this.values.length * 2 + 1 < this.chartWidth
+      var width = margin
+        ? (this.chartWidth - this.values.length - 1) / this.values.length
+        : this.chartWidth / this.values.length
+
+      if (margin) {
+        this.drawXLine(this.feature0.name, this.values, function (d, i) {
+          return (i + 0.5) * width + CHART_PADDING + i + 1
+        })
+      } else {
+        this.drawXLine(this.feature0.name)
+      }
+
+      this.drawYLine('occurrences')
+
+      this.bar = this.svg.selectAll('.bar')
+        .data(this.values)
+        .enter().append('rect')
+        .each(function (d, i) {
+          this._height = (self.chartHeight - 1) * (self.occurrences[d] / self.max)
+          this._x = margin
+           ? i * width + CHART_PADDING + i + 1
+           : i * width + CHART_PADDING
+        }).attr('class', 'bar')
+        .attr('x', function () { return this._x })
+        .attr('width', width)
+        .attr('y', this.chartHeight - 1 + CHART_PADDING)
+        .attr('height', 0)
+
+      this.bar.transition().duration(TRANSITION_DURATION)
+        .attr('y', function () { return self.chartHeight - 1 + CHART_PADDING - this._height })
+        .attr('height', function () { return this._height })
+
+      this.title = this.bar.append('title')
+        .text(function (d) {
+          return self.feature0.name + ' : ' + d + '\n'
+            + 'occurrences : ' + self.occurrences[d]
         })
     } else {
       this.drawn = false
@@ -675,35 +770,13 @@ class ChartFactory {
 
           this.xGraduationsValues = this.range(this.xMin, this.xMax, this.chartWidth, this.feature1)
 
-          this.xGraduation.remove()
-          this.xGraduation = this.svg.selectAll('.xGraduations')
-            .data(this.xGraduationsValues)
-            .enter().append('line')
-            .attr('x1', function (x) {
-              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
-            })
-            .attr('y1', self.height - CHART_PADDING)
-            .attr('x2', function (x) {
-              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
-            })
-            .attr('y2', self.height - CHART_PADDING + 5)
+          for (var i = 0, li = this.xGraduationsValues.length; i < li; i++) {
+            this.xGraduationsValues[i] = Math.round(this.xGraduationsValues[i] * 100) / 100
+          }
 
-          this.xGraduationText.remove()
-          this.xGraduationText = this.svg.selectAll('.xGraduations')
-            .data(this.xGraduationsValues)
-            .enter().append('text')
-            .text(function (x) {
-              return Math.round(x * 100) / 100
-            })
-            .attr('text-anchor', 'middle')
-            .attr('x', function (x) {
-              return ((x - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
-            })
-            .attr('y', self.height - CHART_PADDING + 15)
-            .style('font-size', '10px')
-
-
-          this.xName.text(this.x.name)
+          this.drawXLine(this.x.name, this.xGraduationsValues, function (d, i) {
+            return ((d - self.xMin) / (self.xMax - self.xMin)) * self.chartWidth + CHART_PADDING
+          })
         }
 
         if (change === 'feature2') {
@@ -778,35 +851,7 @@ class ChartFactory {
       if (change == 'feature0') {
         this.drawChart()
       } else {
-        this.values = []
-        this.occurrences = {}
-        this.total = 0
-
-        for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
-          var cell = this.pcm.products[p].cellsByFeatureId[this.feature0.id]
-
-          if (cell.type === 'multiple') {
-            for (var i = 0, li = cell.value.length; i < li; i++) {
-              if (typeof this.occurrences[cell.value[i]] === 'undefined') {
-                this.values.push(cell.value[i])
-                this.occurrences[cell.value[i]] = 0
-              }
-              if (cell.product.match) {
-                this.total++
-                this.occurrences[cell.value[i]]++
-              }
-            }
-          } else {
-            if (typeof this.occurrences[cell.value] === 'undefined') {
-              this.values.push(cell.value)
-              this.occurrences[cell.value] = 0
-            }
-            if (cell.product.match) {
-              this.total++
-              this.occurrences[cell.value]++
-            }
-          }
-        }
+        this.computeData()
 
         this.path.data(this.pie).transition().duration(TRANSITION_DURATION).attrTween("d", function (d) {
           var i = d3.interpolate(this._current.startAngle, d.startAngle)
@@ -834,7 +879,25 @@ class ChartFactory {
 
         this.title.text(function (d) {
             return self.feature0.name + ' : ' + d.data + '\n'
-              + 'occurences : ' + self.occurrences[d.data] + ' (' + (Math.round(self.occurrences[d.data] * 10000 / self.total) / 100) + '%)'
+              + 'occurrences : ' + self.occurrences[d.data] + ' (' + (Math.round(self.occurrences[d.data] * 10000 / self.total) / 100) + '%)'
+          })
+      }
+    } else if (this.chart == 'barChart') { // Bar Chart ------------------------------------------------------------------------
+      if (change == 'feature0') {
+        this.drawChart()
+      } else {
+        this.computeData()
+
+        this.bar.each(function (d, i) {
+            this._height = (self.chartHeight - 1) * (self.occurrences[d] / self.max)
+          }).transition().duration(TRANSITION_DURATION)
+          .attr('y', function () { return self.chartHeight - 1 + CHART_PADDING - this._height })
+          .attr('height', function () { return this._height })
+
+        this.title = this.bar.append('title')
+          .text(function (d) {
+            return self.feature0.name + ' : ' + d + '\n'
+              + 'occurrences : ' + self.occurrences[d]
           })
       }
     } else {
