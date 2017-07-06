@@ -137,7 +137,9 @@ class Editor {
     this.cellEditType.addEventListener('click', function (e) {
       if (self.selectedCell) {
         var value = null
-        if (self.selectedCell.type !== 'multiple') {
+        if (self.selectedCell.type == 'date') {
+          console.log('Date to string TODO (lazy devs...)')
+        } else if (self.selectedCell.type !== 'multiple') {
           value = []
           if (self.cellEditInput.value.length > 0) {
             value = [self.cellEditInput.value]
@@ -172,6 +174,11 @@ class Editor {
         self.editType = detectType(self.cellEditInput.value).type
       }
     })
+    this.cellEditDatePicker = new DatePicker(null, function () {
+      self.editCell(self.selectedCell, self.cellEditDatePicker.date.toISOString())
+    })
+    this.cellEditDatePicker.button.style.display = 'none'
+    this.cellEditDatePicker.appendTo(this.cellEditInputWrap)
 
     /* pcm edition */
     this.editAction = document.getElementById('editAction')
@@ -379,22 +386,33 @@ class Editor {
 
     if (this.selectedCell) {
       this.selectedCell.div.className = 'pcmCell' // remove selected
+      // Reset state
+      this.cellEditInput.style.display = 'inline-block'
+      this.cellEditDatePicker.visible = false
+      this.cellEditDatePicker.button.style.display = 'none'
       this.removeAllEditChips()
       if (value == null) this.pcmView.className = ''
     } else if (value) {
       this.pcmView.className = 'cellEditVisible'
     }
+
     this._selectedCell = value
     if (this.selectedCell != null) {
       this.selectedCell.div.className = 'pcmCell selected'
       this.editType = this.selectedCell.type
+
       if (this.editType === 'multiple') {
         this.cellEditInput.value = ''
         for (var i = 0, li = this.selectedCell.value.length; i < li; i++) {
           this.addEditChips(this.selectedCell.value[i])
         }
+      } else if (this.editType === 'date') {
+        this.cellEditInput.style.display = 'none'
+        this.cellEditDatePicker.date = this.selectedCell.value
+        console.log('popopo')
+        this.cellEditDatePicker.button.style.display = 'inline-block'
       } else {
-        this.cellEditInput.value = this.selectedCell.value
+        this.cellEditInput.value = this.selectedCell.valueForExport
       }
       this.cellEditInput.select()
     }

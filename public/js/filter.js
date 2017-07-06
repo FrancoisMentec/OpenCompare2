@@ -164,7 +164,10 @@ class Filter {
         })
         this.input.appendTo(this.content)
       }
-    } else { // Other
+    }/* else if (this.type == 'date') {
+      this.startDate = new DatePicker()
+      this.startDate.appendTo(this.content)
+    }*/ else { // Other
       this.content.innerHTML += '<br><br> Sorry can\'t filter on this type for now, it will be coming soon'
     }
   }

@@ -410,3 +410,257 @@ class ContextMenu {
     })
   }
 }
+
+const SHORT_DAY_NAME = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+/* Date Picker */
+class DatePicker {
+  constructor (date = null, onOk = null) {
+    var self = this
+    this._visible = false
+    this.onOk = onOk
+
+    this.button = document.createElement('button')
+    this.button.className = 'flatButton datePickerButton'
+    this.button.addEventListener('click', function () {
+      self.toggle()
+    })
+    this.buttonIcon = document.createElement('span')
+    this.buttonIcon.className = 'material-icons'
+    this.buttonIcon.innerHTML = 'event'
+    this.button.appendChild(this.buttonIcon)
+    this.buttonText = document.createElement('span')
+    this.button.appendChild(this.buttonText)
+
+    this.div = document.createElement('div')
+    this.div.className = 'datePicker'
+    document.body.appendChild(this.div)
+
+    // year div
+    this.yearDiv = document.createElement('div')
+    this.yearDiv.className = 'yearDiv'
+    this.div.appendChild(this.yearDiv)
+    this.previousYearButton = document.createElement('button')
+    this.previousYearButton.className = 'material-icons flatButton'
+    this.previousYearButton.innerHTML = 'keyboard_arrow_left'
+    this.previousYearButton.addEventListener('click', function () {
+      var d = new Date(self.shownDate)
+      d.setFullYear(d.getFullYear() - 1)
+      self.showDate(d)
+    })
+    this.yearDiv.appendChild(this.previousYearButton)
+    this.yearInput = document.createElement('input')
+    this.yearInput.className = 'yearInput'
+    this.yearDiv.appendChild(this.yearInput)
+    this.nextYearButton = document.createElement('button')
+    this.nextYearButton.className = 'material-icons flatButton'
+    this.nextYearButton.innerHTML = 'keyboard_arrow_right'
+    this.nextYearButton.addEventListener('click', function () {
+      var d = new Date(self.shownDate)
+      d.setFullYear(d.getFullYear() + 1)
+      self.showDate(d)
+    })
+    this.yearDiv.appendChild(this.nextYearButton)
+
+    // month div
+    this.monthDiv = document.createElement('div')
+    this.monthDiv.className = 'monthDiv'
+    this.div.appendChild(this.monthDiv)
+    this.previousMonthButton = document.createElement('button')
+    this.previousMonthButton.className = 'material-icons flatButton'
+    this.previousMonthButton.innerHTML = 'keyboard_arrow_left'
+    this.previousMonthButton.addEventListener('click', function () {
+      var d = new Date(self.shownDate)
+      d.setMonth(d.getMonth() - 1)
+      self.showDate(d)
+    })
+    this.monthDiv.appendChild(this.previousMonthButton)
+    this.monthInput = document.createElement('span')
+    this.monthInput.className = 'monthInput'
+    this.monthDiv.appendChild(this.monthInput)
+    this.nextMonthButton = document.createElement('button')
+    this.nextMonthButton.className = 'material-icons flatButton'
+    this.nextMonthButton.innerHTML = 'keyboard_arrow_right'
+    this.nextMonthButton.addEventListener('click', function () {
+      var d = new Date(self.shownDate)
+      d.setMonth(d.getMonth() + 1)
+      self.showDate(d)
+    })
+    this.monthDiv.appendChild(this.nextMonthButton)
+
+    // date div
+    this.dayDiv = document.createElement('div')
+    this.dayDiv.className = 'dayDiv'
+    this.div.appendChild(this.dayDiv)
+    this.dayNameDiv = document.createElement('div')
+    this.dayNameDiv.className = 'dayLine'
+    this.dayDiv.appendChild(this.dayNameDiv)
+    for (var i = 0; i < SHORT_DAY_NAME.length; i++) {
+      var div = document.createElement('div')
+      div.className = 'dayName'
+      div.innerHTML = SHORT_DAY_NAME[i]
+      this.dayNameDiv.appendChild(div)
+    }
+    this.dayWrap = document.createElement('div')
+    this.dayDiv.appendChild(this.dayWrap)
+
+    // time div
+    this.timeDiv = document.createElement('div')
+    this.timeDiv.className = 'timeDiv'
+    this.div.appendChild(this.timeDiv)
+    this.hourInput = new TextField('Hour', 'number')
+    this.hourInput.addEventListener('change', function () {
+      var d = new Date(self.date)
+      d.setHours(self.hourInput.value)
+      self.date = d
+    })
+    this.hourInput.appendTo(this.timeDiv)
+    this.minuteInput = new TextField('Min', 'number')
+    this.minuteInput.addEventListener('change', function () {
+      var d = new Date(self.date)
+      d.setMinutes(self.minuteInput.value)
+      self.date = d
+    })
+    this.minuteInput.appendTo(this.timeDiv)
+    this.secondInput = new TextField('Sec', 'number')
+    this.secondInput.addEventListener('change', function () {
+      var d = new Date(self.date)
+      d.setSeconds(self.secondInput.value)
+      self.date = d
+    })
+    this.secondInput.appendTo(this.timeDiv)
+    this.millisecondInput = new TextField('Milli', 'number')
+    this.millisecondInput.addEventListener('change', function () {
+      var d = new Date(self.date)
+      d.setMilliseconds(self.millisecondInput.value)
+      self.date = d
+    })
+    this.millisecondInput.appendTo(this.timeDiv)
+
+    // action div
+    this.actionDiv = document.createElement('div')
+    this.actionDiv.className = 'actionDiv'
+    this.div.appendChild(this.actionDiv)
+    this.okButton = document.createElement('button')
+    this.okButton.className = 'flatButton'
+    this.okButton.innerHTML = 'OK'
+    this.okButton.addEventListener('click', function () {
+      if (typeof self.onOk == 'function') self.onOk()
+      self.visible = false
+    })
+    this.actionDiv.appendChild(this.okButton)
+
+    // attr
+    this.shownDate = null
+    this.daysButton = []
+    this.today = new Date()
+    this.date = date || new Date()
+  }
+
+  get date () {
+    return this._date
+  }
+
+  set date (value) {
+    this._date = value
+
+    this.buttonText.innerHTML = this.date.toLocaleString()
+    this.showDate(this.date)
+    this.hourInput.value = this.date.getHours()
+    this.minuteInput.value = this.date.getMinutes()
+    this.secondInput.value = this.date.getSeconds()
+    this.millisecondInput.value = this.date.getMilliseconds()
+  }
+
+  get visible () {
+    return this._visible
+  }
+
+  set visible (value) {
+    if (value != this._visible) {
+      this._visible = value
+      if (this._visible) {
+        var rect = this.button.getBoundingClientRect()
+        this.div.style.left = rect.left + 'px'
+        this.div.style.top = rect.top + this.button.offsetHeight + 'px'
+        $(this.div).fadeIn()
+      } else {
+        $(this.div).fadeOut()
+      }
+    }
+  }
+
+  showDate (date) {
+    if (this.shownDate == null || this.shownDate.getFullYear() != date.getFullYear() || this.shownDate.getMonth() != date.getMonth()) {
+      var day = new Date(date.getFullYear(), date.getMonth(), 1)
+
+      this.yearInput.value = day.getFullYear()
+      this.monthInput.innerHTML = day.toLocaleString('en-us', {month: 'long'})
+
+      while (this.dayWrap.firstChild) this.dayWrap.removeChild(this.dayWrap.firstChild)
+
+      for (var i = 0; i < day.getDay(); i++) {
+        var div = document.createElement('div')
+        div.className = 'dayPadding'
+        this.dayWrap.appendChild(div)
+      }
+      this.daysButton = []
+      while (day.getMonth() === date.getMonth()) {
+        this.daysButton[day.getDate()] = this.addDay(day)
+        day.setDate(day.getDate() + 1)
+      }
+    } else if (this.shownDate.getFullYear() == this.date.getFullYear() && this.shownDate.getMonth() == this.date.getMonth()) {
+      for (var i in this.daysButton) {
+        this.daysButton[i].className = 'flatButton day'
+        if (this.date.getFullYear() == this.today.getFullYear() && this.date.getMonth() == this.today.getMonth() && i == this.today.getDate()) {
+          this.daysButton[i].className +=  ' today'
+        }
+        if (i == this.date.getDate()) {
+          this.daysButton[i].className +=  ' current'
+        }
+      }
+    }
+
+    this.shownDate = date
+  }
+
+  /**
+   * Add a button for the specified day to the day wrap
+   * @param {Date} day - the day
+   */
+  addDay (d) {
+    var day = new Date(d)
+    var self = this
+
+    var div = document.createElement('button')
+    div.className = 'flatButton day'
+
+    if (day.getFullYear() == this.today.getFullYear() && day.getMonth() == this.today.getMonth() && day.getDate() == this.today.getDate()) {
+      div.className +=  ' today'
+    }
+    if (day.getFullYear() == this.date.getFullYear() && day.getMonth() == this.date.getMonth() && day.getDate() == this.date.getDate()) {
+      div.className +=  ' current'
+    }
+
+    div.innerHTML = day.getDate()
+    div.addEventListener('click', function () {
+      self.date.setDate(day.getDate())
+      var d = new Date(self.date)
+      d.setFullYear(day.getFullYear())
+      d.setMonth(day.getMonth())
+      d.setDate(day.getDate())
+      self.date = d
+    })
+    this.dayWrap.appendChild(div)
+
+    return div
+  }
+
+  toggle () {
+    this.visible = !this.visible
+  }
+
+  appendTo (element) {
+    element.appendChild(this.button)
+  }
+}

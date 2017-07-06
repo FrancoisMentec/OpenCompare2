@@ -6,6 +6,15 @@ function isMail (value) {
   return /^[^@\s]+@[^@\s]+\.[a-zA-Z]+$/.test(value)
 }
 
+/**
+ * Return if value is a valid date
+ * @param {string} value - the value to test
+ */
+function isDate (value) {
+  return !isNaN(Date.parse(value))
+  // regex for ISO 8601 : ^((\+|-)\d{2})?\d{4}(-\d{2}(-\d{2}(T\d{2}(:\d{2}(:\d{2}(\.\d{3}(Z|(\+|-)\d{2}:\d{2})?)?)?)?)?)?)?$
+}
+
 function detectType (value) {
   var type = typeof value
   if (value == null) {
@@ -31,6 +40,9 @@ function detectType (value) {
       type = 'image'
     } else if (isUrl(value)) {
       type = 'url'
+    } else if (isDate(value)) {
+      type = 'date'
+      value = new Date(value)
     }
   }
 
@@ -43,5 +55,6 @@ function detectType (value) {
 if (typeof window === 'undefined') {
   module.exports.isUrl = isUrl
   module.exports.isMail = isMail
+  module.exports.isDate = isDate
   module.exports.detectType = detectType
 }

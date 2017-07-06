@@ -484,3 +484,98 @@ select:hover {
   width: 100%;
   white-space: nowrap;
 }
+
+/* Date Picker */
+
+.datePickerButton {
+  text-align: left;
+  padding-left: 0px;
+  padding-right: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: Roboto-Medium;
+}
+
+.datePickerButton > .material-icons {
+  margin-left: 5px;
+}
+
+.datePicker {
+  display: none;
+  position: fixed;
+  width: 294px;
+  z-index: 5;
+  background-color: white;
+  border-radius: 2px;
+  box-shadow: 0 10px 45px rgba(0,0,0,0.24);
+}
+
+.yearDiv, .monthDiv {
+  width: 100%;
+  height: 36px;
+  line-height: 36px;
+  background-color: #009688; /* teal 500 */
+  color: white;
+}
+
+.yearDiv > button, .monthDiv > button {
+  color: white;
+}
+
+.yearInput, .monthInput {
+  display: inline-block;
+  vertical-align: top;
+  width: calc(100% - 84px);
+  height: 100%;
+  text-align: center;
+  border: none;
+  background-color: #009688; /* teal 500 */
+  color: white;
+  font-family: Roboto-Medium;
+}
+
+.dayName, .dayPadding, .day {
+  display: inline-block;
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  height: 42px;
+  line-height: 42px;
+  padding: 0;
+  vertical-align: top;
+  text-align: center;
+}
+
+.dayName {
+  font-family: Roboto-Medium;
+  font-size: 12px;
+  color: #9E9E9E;
+  height: 32px;
+  line-height: 32px;
+}
+
+.day {
+  border-radius: 50%;
+  color: black;
+}
+
+.day.today {
+  color: #009688; /* teal 500 */
+}
+
+.day.current {
+  color: white;
+  background-color: #009688; /* teal 500 */
+}
+
+.timeDiv > .textField {
+  width: 63px;
+  display: inline-block;
+  margin: 0 5px 0 5px;
+}
+
+.datePicker > .actionDiv {
+  text-align: right;
+  padding: 5px;
+}

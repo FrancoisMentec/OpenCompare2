@@ -74,6 +74,10 @@
   vertical-align: middle;
 }
 
+#cellEditInputWrap > .datePickerButton {
+  margin-top: 9px;
+}
+
 #cellEditInput {
   min-width: 200px;
   height: 100%;

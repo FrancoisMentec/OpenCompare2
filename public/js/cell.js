@@ -47,6 +47,16 @@ class Cell {
   }
 
   /**
+   * Return the value for an export (ex: store in db)
+   */
+  get valueForExport () {
+    if (this.type == 'date') {
+      return this.value.toISOString()
+    }
+    return this.value
+  }
+
+  /**
    * Re-detect the type of cell
    */
   retype () {
@@ -58,6 +68,8 @@ class Cell {
       var res = detectType(value)
       value = res.value
       type = res.type
+    } else if (type == 'date') {
+      value = new Date(value)
     }
 
     this._value = value
@@ -70,6 +82,7 @@ class Cell {
 
   cloneValue () {
     if (Array.isArray(this.value)) return this.value.slice()
+    else if (this.type == 'date') return new Date(this.value)
     else if (typeof this.value === 'object') return Object.assign({}, this.value)
     return this.value
   }
@@ -93,11 +106,10 @@ class Cell {
         html += '<img src="' + this.value + '">'
         break
       case 'multiple':
-        for (var i = 0, li = this.value.length; i < li; i++) {
-          if (i > 0) html += ', '
-          html += this.value[i]
-        }
+        html += this.value.join(', ')
         break
+      case 'date':
+        html += this.value.toLocaleString()
     }
 
     return html
@@ -109,7 +121,7 @@ class Cell {
       type: this.type,
       isPartial: this.isPartial,
       unit: this.unit,
-      value: this.value
+      value: this.valueForExport
     }
   }
 }
