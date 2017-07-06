@@ -68,6 +68,7 @@
   white-space: nowrap;
   height: 100%;
   overflow: auto;
+  overflow-y: hidden;
 }
 
 #cellEditInputWrap > * {
