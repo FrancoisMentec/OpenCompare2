@@ -451,6 +451,12 @@ class DatePicker {
     this.yearDiv.appendChild(this.previousYearButton)
     this.yearInput = document.createElement('input')
     this.yearInput.className = 'yearInput'
+    this.yearInput.setAttribute('type', 'number')
+    this.yearInput.addEventListener('change', function () {
+      var d = new Date(self.shownDate)
+      d.setFullYear(self.yearInput.value)
+      self.showDate(d)
+    })
     this.yearDiv.appendChild(this.yearInput)
     this.nextYearButton = document.createElement('button')
     this.nextYearButton.className = 'material-icons flatButton'
