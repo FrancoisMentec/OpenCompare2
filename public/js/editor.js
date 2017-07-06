@@ -138,7 +138,7 @@ class Editor {
       if (self.selectedCell) {
         var value = null
         if (self.selectedCell.type == 'date') {
-          console.log('Date to string TODO (lazy devs...)')
+          value = 'Not a date : ' + self.selectedCell.value.toISOString()
         } else if (self.selectedCell.type !== 'multiple') {
           value = []
           if (self.cellEditInput.value.length > 0) {
@@ -409,7 +409,6 @@ class Editor {
       } else if (this.editType === 'date') {
         this.cellEditInput.style.display = 'none'
         this.cellEditDatePicker.date = this.selectedCell.value
-        console.log('popopo')
         this.cellEditDatePicker.button.style.display = 'inline-block'
       } else {
         this.cellEditInput.value = this.selectedCell.valueForExport
@@ -886,15 +885,7 @@ class Editor {
               cell.setValue(data.value, data.type)
               if (featuresToUpdate.indexOf(cell.feature.id) == -1) featuresToUpdate.push(cell.feature.id)
               if (cell == self.selectedCell) {
-                self.removeAllEditChips()
-                self.editType = cell.type
-                if (self.editType === 'multiple') {
-                  for (var i = 0, li = self.selectedCell.value.length; i < li; i++) {
-                    self.addEditChips(self.selectedCell.value[i])
-                  }
-                } else {
-                  self.cellEditInput.value = self.selectedCell.value
-                }
+                self.selectedCell = cell
               }
               initChartFactory = true
             } else if (action == 'addProduct') {
