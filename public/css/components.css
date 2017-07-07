@@ -535,6 +535,7 @@ select:hover {
   background-color: #009688; /* teal 500 */
   color: white;
   font-family: Roboto-Medium;
+  font-size: 14px;
 }
 
 .dayName, .dayPadding, .day {
