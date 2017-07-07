@@ -71,6 +71,9 @@ class Feature {
     this.occurrences = {}
     this.min = null
     this.max = null
+    this.minDate = null
+    this.maxDate = null
+
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
       var cell = this.pcm.products[p].cellsByFeatureId[this.id]
       if (typeof this.types[cell.type] === 'undefined') this.types[cell.type] = 1
@@ -79,6 +82,7 @@ class Feature {
       if (!isFromDB && (this.type == 'undefined' || (cell.type !== 'undefined' && this.types[cell.type] > this.types[this.type]))) this.type = cell.type
 
       if (cell.type === 'multiple') {
+        // Count occurences
         for (var i = 0, li = cell.value.length; i < li; i++) {
           if (typeof this.occurrences[cell.value[i]] === 'undefined') {
             this.values.push(cell.value[i])
@@ -86,14 +90,19 @@ class Feature {
           } else this.occurrences[cell.value[i]]++
         }
       } else {
+        // Count occurences
         if (typeof this.occurrences[cell.value] === 'undefined') {
           this.values.push(cell.value)
           this.occurrences[cell.value] = 1
         } else this.occurrences[cell.value]++
 
+        // look for min/max
         if (cell.type === 'number') {
           if (this.min == null || cell.value < this.min) this.min = cell.value
           if (this.max == null || cell.value > this.max) this.max = cell.value
+        } else if (cell.type === 'date') {
+          if (this.minDate == null || cell.value < this.minDate) this.minDate = cell.value
+          if (this.maxDate == null || cell.value > this.maxDate) this.maxDate = cell.value
         }
       }
     }

@@ -423,6 +423,7 @@ class DatePicker {
     this.button = document.createElement('button')
     this.button.className = 'flatButton datePickerButton'
     this.button.addEventListener('click', function () {
+      if (self.visible) self.date = self.previousDate
       self.toggle()
     })
     this.buttonIcon = document.createElement('span')
@@ -547,6 +548,14 @@ class DatePicker {
     this.actionDiv = document.createElement('div')
     this.actionDiv.className = 'actionDiv'
     this.div.appendChild(this.actionDiv)
+    this.cancelButton = document.createElement('button')
+    this.cancelButton.className = 'flatButton'
+    this.cancelButton.innerHTML = 'CANCEL'
+    this.cancelButton.addEventListener('click', function () {
+      self.date = self.previousDate
+      self.visible = false
+    })
+    this.actionDiv.appendChild(this.cancelButton)
     this.okButton = document.createElement('button')
     this.okButton.className = 'flatButton'
     this.okButton.innerHTML = 'OK'
@@ -586,6 +595,7 @@ class DatePicker {
     if (value != this._visible) {
       this._visible = value
       if (this._visible) {
+        this.previousDate = this.date // save previous date for cancel
         var rect = this.button.getBoundingClientRect()
         this.div.style.left = rect.left + 'px'
         this.div.style.top = rect.top + this.button.offsetHeight + 'px'
@@ -650,7 +660,6 @@ class DatePicker {
 
     div.innerHTML = day.getDate()
     div.addEventListener('click', function () {
-      self.date.setDate(day.getDate())
       var d = new Date(self.date)
       d.setFullYear(day.getFullYear())
       d.setMonth(day.getMonth())

@@ -11,6 +11,7 @@ class Filter {
 
     this.div = document.createElement('div')
     this.div.className = 'filter'
+
     this.button = document.createElement('div')
     this.button.className = 'filterButton'
     this.button.addEventListener('click', function () {
@@ -27,7 +28,28 @@ class Filter {
     this.arrow = document.createElement('div')
     this.arrow.className = 'filterArrow'
     this.button.appendChild(this.arrow)
-    this.button.innerHTML += ' ' + this.feature.name
+
+    this.featureName = document.createElement('span')
+    this.featureName.className = 'filterFeatureName'
+    this.featureName.innerHTML = this.feature.name
+    this.featureName.addEventListener('click', function (e) {
+      //e.stopPropagation()
+      if (!self.feature.fixed) {
+        //$(self.editor.pcmContent).animate({scrollLeft: self.feature.column.offsetLeft - self.editor.fixedFeaturesColumn.offsetWidth}, 200)
+        self.editor.pcmContent.scrollLeft = self.feature.column.offsetLeft - self.editor.fixedFeaturesColumn.offsetWidth
+      }
+    })
+    this.button.appendChild(this.featureName)
+
+    this.resetButton = document.createElement('button')
+    this.resetButton.className = 'material-icons flatButton filterResetButton'
+    this.resetButton.innerHTML = 'settings_backup_restore'
+    this.resetButton.addEventListener('click', function (e) {
+      e.stopPropagation()
+      self.reset()
+    })
+    this.button.appendChild(this.resetButton)
+
     this.content = document.createElement('div')
     this.content.className = 'filterContent'
 
@@ -47,6 +69,14 @@ class Filter {
     this.searchRegex = new RegExp(this.searchString, 'i')
   }
 
+  get lower () {
+    return this.slider.lower
+  }
+
+  get upper () {
+    return this.slider.upper
+  }
+
   /**
    * Call it in the constructor and when feature change
    */
@@ -57,7 +87,6 @@ class Filter {
       this.content.removeChild(this.content.firstChild)
     }
 
-    this.content.innerHTML = 'Type : ' + this.type
     this.div.appendChild(this.content)
 
     this._searchString = ''
@@ -68,29 +97,24 @@ class Filter {
     this.checkboxesByValue = {}
 
     if (this.type === 'number') { // Number
-      this.lower = this.feature.min
-      this.upper = this.feature.max
-
       this.lowerInput = new TextField('Min', 'number')
-      this.lowerInput.value = this.lower
+      this.lowerInput.value = this.feature.min
       this.lowerInput.addEventListener('change', function () {
         var val = parseFloat(self.lowerInput.value)
         if (!isNaN(val)) self.slider.lower = val
       })
       this.lowerInput.appendTo(this.content)
 
-      this.slider = new SliderRange(this.lower, this.upper)
+      this.slider = new SliderRange(this.feature.min, this.feature.max)
       this.slider.appendTo(this.content)
       this.slider.rangeChangeListener = function (lower, upper) {
-        self.lower = lower
-        self.upper = upper
         self.lowerInput.value = Math.round(self.lower * 100) / 100
         self.upperInput.value = Math.round(self.upper * 100) / 100
         self.filterChanged()
       }
 
       this.upperInput = new TextField('Max', 'number')
-      this.upperInput.value = this.upper
+      this.upperInput.value = this.feature.max
       this.upperInput.addEventListener('change', function () {
         var val = parseFloat(self.upperInput.value)
         if (!isNaN(val)) self.slider.upper = val
@@ -164,11 +188,22 @@ class Filter {
         })
         this.input.appendTo(this.content)
       }
-    }/* else if (this.type == 'date') {
-      this.startDate = new DatePicker()
-      this.startDate.appendTo(this.content)
-    }*/ else { // Other
-      this.content.innerHTML += '<br><br> Sorry can\'t filter on this type for now, it will be coming soon'
+    } else if (this.type == 'date') { // Date
+      this.content.appendChild(document.createTextNode('Start date :'))
+
+      this.minDate = new DatePicker(this.feature.minDate, function () {
+        self.filterChanged()
+      })
+      this.minDate.appendTo(this.content)
+
+      this.content.appendChild(document.createTextNode('End date :'))
+
+      this.maxDate = new DatePicker(this.feature.maxDate, function () {
+        self.filterChanged()
+      })
+      this.maxDate.appendTo(this.content)
+    } else { // Other
+      this.content.innerHTML += this.type + '<br><br> Sorry can\'t filter on this type for now, it will be coming soon'
     }
   }
 
@@ -190,7 +225,8 @@ class Filter {
           (this.hasCheckboxes && this.checkboxesByValue[cell.value].checked) ||
           (!this.hasCheckboxes && this.searchRegex.test(cell.value)))) ||
         (cell.type === 'number' && cell.value >= this.lower && cell.value <= this.upper) ||
-        (cell.type === 'boolean' && ((this.trueCheckbox.checked && cell.value) || (this.falseCheckbox.checked && !cell.value)))) ||
+        (cell.type === 'boolean' && ((this.trueCheckbox.checked && cell.value) || (this.falseCheckbox.checked && !cell.value))) ||
+        (cell.type === 'date' && cell.value >= this.minDate.date && cell.value <= this.maxDate.date)) ||
         (cell.type === 'multiple' && this.matchMultiple(cell)))
   }
 
@@ -209,9 +245,43 @@ class Filter {
         (!this.hasCheckboxes && this.searchString.length === 0))) ||
       (this.type === 'number' && this.lower === this.feature.min && this.upper === this.feature.max) ||
       (this.type === 'boolean' && this.trueCheckbox.checked && this.falseCheckbox.checked) ||
-      (this.type === 'multiple' && this.checkCheckboxesState(false, false))
+      (this.type === 'multiple' && this.checkCheckboxesState(false, false)) ||
+      (this.type === 'date' && this.minDate.date.getTime() === this.feature.minDate.getTime() && this.maxDate.date.getTime() === this.feature.maxDate.getTime())
+
+    this.button.className = this.matchAll
+      ? 'filterButton'
+      : 'filterButton resetButtonVisible'
 
     this.editor.filterChanged(this)
     //console.timeEnd('filter.filterChanged')
+  }
+
+  /**
+   * Reset the filter
+   */
+  reset () {
+    if (this.type === 'string' || this.type === 'url' || this.type === 'image') {
+      if (this.hasCheckboxes) {
+        for (var i = 0, li = this.checkboxes.length; i < li; i++) {
+          this.checkboxes[i].checked = true
+        }
+      } else {
+        this.input.value = ''
+      }
+    } else if (this.type === 'number') {
+      this.slider.lower = this.feature.min
+      this.slider.upper = this.feature.max
+    } else if (this.type === 'boolean') {
+      this.trueCheckbox.checked = true
+      this.falseCheckbox.checked = true
+    } else if (this.type === 'multiple') {
+      for (var i = 0, li = this.checkboxes.length; i < li; i++) {
+        this.checkboxes[i].checked = false
+      }
+    } else if (this.type === 'date') {
+      this.minDate.date = this.feature.minDate
+      this.maxDate.date = this.feature.maxDate
+      this.filterChanged()
+    }
   }
 }
