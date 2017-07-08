@@ -27,3 +27,9 @@ Open a pcm and copy the link of the pcm (ex: [https://opencompare.org/pcm/5757b9
 
 ### From csv file
 Drag and drop your file on the home page, a popup appears, click on import, done (separator has to be a comma).
+
+## Create a new PCM
+- Click on 'Create from scratch' on the home
+- Fill the form (Only name is mandatory)
+- Click on OK
+- You can start editing your pcm by adding features and products (You has to be logged in)

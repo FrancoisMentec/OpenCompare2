@@ -106,8 +106,18 @@
   top: -1px;
 }
 
-#editAction {
+#editAction  {
+  position: relative;
+}
+
+#editAction.notConnected > button {
   display: none;
+}
+
+#editAction.notConnected:after {
+  content: "You can't edit the pcm if you are not connected";
+  width: 100%;
+  height: 100%;
 }
 
 #addProductButton, #addFeatureButton {

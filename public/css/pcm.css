@@ -33,7 +33,7 @@
 }
 
 #cellEdit.disable::before {
-  content: "Your not connected to the server";
+  content: "You are not connected to the server";
   position: absolute;
   top: 50%;
   transform: translateY(-50%);

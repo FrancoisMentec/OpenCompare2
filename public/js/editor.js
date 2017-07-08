@@ -848,7 +848,7 @@ class Editor {
         self.connected = self.connectedToSession = false
         self.pcmView.className = '' // remove cellEditVisible
         self.cellEdit.className = 'disable'
-        self.editAction.style.display = 'none'
+        self.editAction.className = 'actionGroup notConnected'
         self.chatVisible = false
         setTimeout(function () {
           self.chat.style.display = 'none'
@@ -873,7 +873,7 @@ class Editor {
             } else if (action == 'connectedToSession') {
               self.connectedToSession = true
               self.cellEdit.className = ''
-              self.editAction.style.display = 'inline-block'
+              self.editAction.className = 'actionGroup'
               self.chat.style.display = 'block'
               self.chatButton.style.display = 'block'
             } else if (action == 'updateUsersList') {
@@ -890,7 +890,10 @@ class Editor {
               initChartFactory = true
             } else if (action == 'addProduct') {
               self.bindProduct(self.pcm.addProduct(data, true))
-              this.updatePCMView()
+              self.updatePCMView()
+              // The new product is always matching (else user won't see it)
+              self.productMathing++
+              self.updateConfiguratorTitle()
             } else if (action == 'renameFeature') {
               var feature = self.pcm.featuresById[data.featureId]
               feature.name = data.name
