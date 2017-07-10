@@ -81,18 +81,33 @@ class PCM {
     }
   }
 
-  sort (feature = this.primaryFeature, order = 1) {
+  /**
+   * Sort the pcm on features passed as parameter
+   * Designed for multi-sort (if 2 values are equals, use the next feature)
+   * @param {[]} features - it's an array of {feature: Feature, order: number} feature is the feature to sort on and order (1 or -1) the order of the sorting
+   */
+  sort (features = [{feature: this.primaryFeature, order: 1}]) {
     //console.time('sort pcm')
+    var self = this
     this.products.sort(function (p1, p2) {
-      if (p1.cellsByFeatureId[feature.id].type !== p2.cellsByFeatureId[feature.id].type) {
-        if (p1.cellsByFeatureId[feature.id].type !== feature.type) return 1
-        if (p2.cellsByFeatureId[feature.id].type !== feature.type) return -1
-      }
-      if (p1.cellsByFeatureId[feature.id].value < p2.cellsByFeatureId[feature.id].value) return -order
-      if (p1.cellsByFeatureId[feature.id].value > p2.cellsByFeatureId[feature.id].value) return order
-      return 0
+      return self.compare(p1, p2, features)
     })
     //console.timeEnd('sort pcm')
+  }
+
+  compare (p1, p2, features) {
+    var self = this
+    var feature = features[0].feature
+    var order = features[0].order
+
+    if (p1.cellsByFeatureId[feature.id].type !== p2.cellsByFeatureId[feature.id].type) {
+      if (p1.cellsByFeatureId[feature.id].type !== feature.type) return 1
+      if (p2.cellsByFeatureId[feature.id].type !== feature.type) return -1
+    }
+    if (p1.cellsByFeatureId[feature.id].value < p2.cellsByFeatureId[feature.id].value) return -order
+    if (p1.cellsByFeatureId[feature.id].value > p2.cellsByFeatureId[feature.id].value) return order
+    if (features.length > 1) return self.compare(p1, p2, features.slice(1))
+    return 0
   }
 
   /**

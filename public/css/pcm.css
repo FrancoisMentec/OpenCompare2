@@ -164,6 +164,7 @@
   font-family: Roboto-Medium;
   font-size: 12px;
   color: #9E9E9E; /* gray 500 */
+  user-select: none;
 }
 
 .pcmFeature.alignRight {
@@ -175,52 +176,20 @@
   border-bottom: 3px solid #009688; /* Teal 500 */
 }
 
-.increase, .decrease {
+.pcmFeature.sorted {
   color: #009688; /* Teal 500 */
 }
 
-.pcmFeature:after {
-  content: "";
-  font-family: 'Material Icons';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 20px;
+.sortDiv {
   display: inline-block;
-  width: 1em;
-  vertical-align: top;
-  margin-left: 12px;
+  box-sizing: content-box;
+  width: 42px;
+  text-align: center;
+  padding: 0 12px 0 12px;
 }
 
-.pcmFeature.increase:after {
-  content: "arrow_downward";
-}
-
-.pcmFeature.decrease:after {
-  content: "arrow_upward";
-}
-
-.pcmFeature.alignRight:after {
-  content: none;
-}
-
-.pcmFeature.alignRight:before {
-  content: "";
-  font-family: 'Material Icons';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 20px;
-  display: inline-block;
-  width: 1em;
-  vertical-align: top;
-  margin-right: 12px;
-}
-
-.pcmFeature.alignRight.increase:before {
-  content: "arrow_downward";
-}
-
-.pcmFeature.alignRight.decrease:before {
-  content: "arrow_upward";
+.sortDiv > * {
+  vertical-align: middle;
 }
 
 .pcmFeature button {

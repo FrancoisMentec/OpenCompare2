@@ -1,4 +1,26 @@
 (function () {
+  class Char {
+    constructor (char, size, font, container) {
+      this.char = char
+
+      this.div = document.createElement('span')
+      this.div.style.fontFamily = font
+      this.div.style.fontSize = size + 'px'
+      this.div.innerHTML = char == ' '
+        ? '&nbsp;'
+        : char
+      container.appendChild(this.div)
+    }
+
+    get width () {
+      return this.div.getBoundingClientRect().width
+    }
+
+    get height () {
+      return this.div.getBoundingClientRect().height
+    }
+  }
+
   class StringMeter {
     constructor () {
       this.div = document.createElement('div')
@@ -15,7 +37,7 @@
       if (typeof this.fonts[font] == 'undefined') this.fonts[font] = {}
       if (typeof this.fonts[font][size] == 'undefined') this.fonts[font][size] = {}
       if (typeof this.fonts[font][size][char] == 'undefined') {
-        var div = document.createElement('span')
+        /*var div = document.createElement('span')
         div.style.fontFamily = font
         div.style.fontSize = size + 'px'
         div.innerHTML = char == ' '
@@ -26,7 +48,8 @@
           width: div.getBoundingClientRect().width,
           height: div.getBoundingClientRect().height
         }
-        this.div.removeChild(div)
+        this.div.removeChild(div)*/
+        this.fonts[font][size][char] = new Char(char, size, font, this.div)
       }
 
       return this.fonts[font][size][char]

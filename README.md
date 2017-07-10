@@ -33,3 +33,14 @@ Drag and drop your file on the home page, a popup appears, click on import, done
 - Fill the form (Only name is mandatory)
 - Click on OK
 - You can start editing your pcm by adding features and products (You has to be logged in)
+
+## Features
+This section is a draft, there are plenty of features, only those which need clarification are listed below.
+
+### Editor
+- **Multi-sort:** you can sort products using multiple features, a simple click add the feature to the list of features used to sort products, if the feature is already in the list it's reverse the order (for this feature only), double click to remove all other features.
+
+- **Change cell type:** The input to edit a cell depends on the cell type, some types conversion are only available by clicking on the type of the cell :
+  - all except date &rarr; multiple.
+  - multiple or date &rarr; string.
+  - to display the date input type the date followed by a `-` (ex: `2017-`) and press enter, the type will be detected as date.

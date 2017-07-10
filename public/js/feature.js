@@ -13,29 +13,33 @@ class Feature {
     if (typeof data.name !== 'string') console.error('feature name is incorrect')
     this._name = data.name
 
-    if (computeData) this.computeData(data, isFromDB)
-
     if (browser) { // create div if in browser
       this.fixed = false
       this.div = document.createElement('div')
-      this.div.className = this.type === 'number'
-        ? 'pcmFeature alignRight'
-        : 'pcmFeature'
+      this.div.className = 'pcmFeature'
       this.nameDiv = document.createElement('span')
       this.nameDiv.innerHTML = this.name
       this.div.appendChild(this.nameDiv)
+
+      this.sortDiv = document.createElement('div')
+      this.sortDiv.className = 'sortDiv'
+      this.div.appendChild(this.sortDiv)
+      this.sortIcon = document.createElement('span')
+      this.sortIcon.className = 'material-icons'
+      this.sortDiv.append(this.sortIcon)
+      this.sortNumber = document.createElement('span')
+      this.sortDiv.appendChild(this.sortNumber)
+
       this.fixButton = document.createElement('button')
       this.fixButton.className = 'flatButton material-icons'
       this.fixButton.innerHTML = 'place'
       this.div.appendChild(this.fixButton)
 
       this.column = document.createElement('div')
-      this.column.className = this.type === 'number'
-        ? 'pcmColumn alignRight'
-        : 'pcmColumn'
-
-      this.updateColumn()
+      this.column.className = 'pcmColumn'
     }
+
+    if (computeData) this.computeData(data, isFromDB)
   }
 
   get name () {
@@ -113,13 +117,16 @@ class Feature {
       return 0
     })
 
-    if (browser && this.div) {
-      this.div.className = this.type === 'number'
-        ? 'pcmFeature alignRight'
-        : 'pcmFeature'
-      this.column.className = this.type === 'number'
-        ? 'pcmColumn alignRight'
-        : 'pcmColumn'
+    if (browser) {
+      if (this.type === 'number') {
+        this.div.classList.add('alignRight')
+        this.column.classList.add('alignRight')
+        this.div.insertBefore(this.sortDiv, this.nameDiv)
+      } else {
+        this.div.classList.remove('alignRight')
+        this.column.classList.remove('alignRight')
+        this.div.appendChild(this.sortDiv)
+      }
     }
   }
 
@@ -156,7 +163,11 @@ class Feature {
     this.div.style.width = 'auto'
     this.column.style.width = 'auto'
 
-    var width = this.div.offsetWidth
+    var width = stringMeter.width(this.name, 12, 'Roboto-Medium')
+      + 44 // padding with fix button
+      + 28 // padding without fix button
+      + 66 // sortDiv
+      + 1 // error
 
     for (var p = 0, lp = this.pcm.products.length; p < lp; p++) {
       var divWidth = stringMeter.width(this.pcm.products[p].cellsByFeatureId[this.id].div.innerText, 13, 'Roboto-Regular') + 56 + 1 // 56 = padding, 1 for error

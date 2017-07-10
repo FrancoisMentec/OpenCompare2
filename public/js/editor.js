@@ -2,6 +2,10 @@ const API = '/api/'
 
 const INCREASE = 1
 const DECREASE = -1
+const SORT_ARROW = {
+  '1': 'arrow_downward',
+  '-1': 'arrow_upward'
+}
 
 class Editor {
   constructor (pcmId) {
@@ -71,6 +75,7 @@ class Editor {
     this.productMathing = 0
     this.sortId = null
     this.sortOrder = null // INCREASE or DECREASE
+    this.sortedFeatures = [] // list of {feature: the feature, order: INCREASE or DECREASE}
     this._selectedCell = null
     this.updateTimeout = null
 
@@ -510,7 +515,7 @@ class Editor {
     this.updateConfiguratorTitle()
 
     // sort pcm
-    this.sort(this.pcm.primaryFeatureId)
+    this.sort(this.pcm.primaryFeature)
 
     // create filters
     for (var f = 0, lf = this.pcm.features.length; f < lf; f++) {
@@ -539,13 +544,19 @@ class Editor {
       }
     }
 
-    this.computeFeaturesWidth()
-
-    this.updatePCMView()
-
-    this.chartFactory.init()
-
-    this.connect()
+    if (document.fonts) { // If browser support fonts API wait before computing width, else width will be computed with the wrong font
+      document.fonts.ready.then(function () {
+        self.computeFeaturesWidth()
+        self.updatePCMView()
+        self.chartFactory.init()
+        self.connect()
+      })
+    } else {
+      this.computeFeaturesWidth()
+      this.updatePCMView()
+      this.chartFactory.init()
+      this.connect()
+    }
   }
 
   updatePCMView () {
@@ -636,9 +647,12 @@ class Editor {
     var self = this
 
     feature.div.addEventListener('click', function (e) {
-      if (e.button === 0) {
-        self.sort(feature.id)
-      }
+      self.sort(feature)
+    })
+
+    feature.div.addEventListener('dblclick', function (e) {
+      console.log('plop')
+      self.sort(feature, true)
     })
 
     feature.div.addEventListener('contextmenu', function (e) {
@@ -762,31 +776,44 @@ class Editor {
     this.pcmProducts.style.paddingLeft = this.fixedFeaturesColumn.offsetWidth + 'px'
   }
 
-  sort (featureId) {
-    if (this.sortId != null) {
-      this.pcm.featuresById[this.sortId].div.className = this.pcm.featuresById[this.sortId].type === 'number'
-        ? 'pcmFeature alignRight'
-        : 'pcmFeature'
-      if (featureId === this.sortId) {
-        this.sortOrder *= -1
-      } else {
-        this.sortOrder = INCREASE
+  sort (feature, reset = false) {
+    if (reset) {
+      for (var i = 0, li = this.sortedFeatures.length; i < li; i++) {
+        this.sortedFeatures[i].feature.div.classList.remove('sorted')
+        this.sortedFeatures[i].feature.sortIcon.innerHTML = ''
+        this.sortedFeatures[i].feature.sortNumber.innerHTML = ''
       }
+      this.sortedFeatures = [{
+        feature: feature,
+        order: INCREASE
+      }]
+      feature.div.classList.add('sorted')
+      feature.sortIcon.innerHTML = SORT_ARROW[INCREASE]
+      feature.sortNumber.innerHTML = this.sortedFeatures.length
     } else {
-      this.sortOrder = INCREASE
-    }
-    this.sortId = featureId
-
-    if (this.pcm.featuresById[this.sortId]) {
-      if (this.sortOrder === INCREASE) {
-        this.pcm.featuresById[this.sortId].div.className += ' increase'
-      } else {
-        this.pcm.featuresById[this.sortId].div.className +=' decrease'
+      let index = -1
+      for (var i = 0, li = this.sortedFeatures.length; i < li; i++) {
+        if (this.sortedFeatures[i].feature.id === feature.id) {
+          index = i
+          break
+        }
       }
-
-      this.pcm.sort(this.pcm.featuresById[this.sortId], this.sortOrder)
-      this.updatePCMView()
+      if (index !== -1) {
+        feature.sortIcon.innerHTML = SORT_ARROW[(this.sortedFeatures[index].order *= -1)]
+        feature.sortNumber.innerHTML = index + 1
+      } else {
+        this.sortedFeatures.push({
+          feature: feature,
+          order: INCREASE
+        })
+        feature.div.classList.add('sorted')
+        feature.sortIcon.innerHTML = SORT_ARROW[INCREASE]
+        feature.sortNumber.innerHTML = this.sortedFeatures.length
+      }
     }
+
+    this.pcm.sort(this.sortedFeatures)
+    this.updatePCMView()
   }
 
   updateConfiguratorTitle () {
