@@ -36,6 +36,7 @@ input {
 /* Button */
 
 button, .button {
+  display: inline-block;
   transition: 0.4s;
   min-width: 64px;
   height: 36px;
@@ -58,6 +59,7 @@ button > *, .button > * {
 
 button:hover, .button:hover {
   background-color: #4DB6AC; /* Teal 300 */
+  text-decoration: none;
 }
 
 button:active, .button:active {

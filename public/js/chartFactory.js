@@ -4,6 +4,9 @@ const GRADUATION_PER_PIXEL = 1 / MINIMAL_GRADUATION_GAP_IN_PX
 const TRANSITION_DURATION = 1000
 const MAX_NODE_SIZE = 16
 
+const TEXT_COLOR = '#9E9E9E'
+const LINE_COLOR = '#9E9E9E'
+
 class ChartFactory {
   constructor (editor) {
     var self = this
@@ -58,6 +61,36 @@ class ChartFactory {
         })
       })(chart)
     }
+
+    // svg download
+    this.style = ''
+    for (var i in document.styleSheets) {
+      var css = document.styleSheets[i]
+      if (css.href.endsWith('chartFactory.css')) {
+        for (var j in css.cssRules) {
+          this.style += css.cssRules[j].cssText + '\n'
+        }
+        break
+      }
+    }
+    this.downloadButton = document.getElementById('downloadChartButton')
+    this.downloadButton.addEventListener('click', function (e) {
+      if (self.svg) {
+        var svg = self.svg._groups[0][0].cloneNode(true)
+        var background = document.createElement('rect')
+        background.setAttribute('width', svg.getAttribute('width'))
+        background.setAttribute('height', svg.getAttribute('height'))
+        background.setAttribute('fill', 'white')
+        svg.insertBefore(background, svg.firstChild)
+        svg.setAttribute('style', 'font-family: Roboto-Regular, Roboto, Arial')
+        var b64 = btoa(svg.outerHTML)
+        self.downloadButton.setAttribute('href', 'data:image/svg+xml;base64,\n' + b64)
+      } else {
+        e.stopPropagation()
+        e.preventDefault()
+        alert('No chart to download')
+      }
+    })
   }
 
   init () {
@@ -312,6 +345,7 @@ class ChartFactory {
 
     if (this.xLine) this.xLine.remove()
     this.xLine = this.svg.append('line')
+      .attr('stroke', LINE_COLOR)
       .attr('x1', CHART_PADDING)
       .attr('y1', this.height - CHART_PADDING)
       .attr('x2', this.width - CHART_PADDING)
@@ -320,6 +354,7 @@ class ChartFactory {
     if (this.xName) this.xName.remove()
     this.xName = this.svg.append('text')
       .text(name)
+      .attr('fill', TEXT_COLOR)
       .attr('text-anchor', 'middle')
       .attr('x', this.width / 2)
       .attr('y', this.height - 2)
@@ -334,6 +369,7 @@ class ChartFactory {
             ? calcX(d, i)
             : d
         })
+        .attr('stroke', LINE_COLOR)
         .attr('x1', function (x) { return this._x })
         .attr('y1', this.height - CHART_PADDING)
         .attr('x2', function (x) { return this._x })
@@ -349,6 +385,7 @@ class ChartFactory {
              : d
         })
         .text(function (d) { return d })
+        .attr('fill', TEXT_COLOR)
         .attr('text-anchor', 'end')
         .attr('x', function (x) { return this._x + 4 })
         .attr('y', this.height - CHART_PADDING + 10)
@@ -368,6 +405,7 @@ class ChartFactory {
   drawYAxis (name, arr = null, calcY = null) {
     if (this.yLine) this.yLine.remove()
     this.yLine = this.svg.append('line')
+      .attr('stroke', LINE_COLOR)
       .attr('x1', CHART_PADDING)
       .attr('y1', CHART_PADDING)
       .attr('x2', CHART_PADDING)
@@ -376,6 +414,7 @@ class ChartFactory {
     if (this.yName) this.yName.remove()
     this.yName = this.svg.append('text')
       .text(name)
+      .attr('fill', TEXT_COLOR)
       .attr('text-anchor', 'middle')
       .attr('transform', 'rotate(-90, 13,  ' + (this.height / 2) + ')')
       .attr('x', 13)
@@ -391,6 +430,7 @@ class ChartFactory {
             ? calcY(d, i)
             : d
         })
+        .attr('stroke', LINE_COLOR)
         .attr('x1', CHART_PADDING - 5)
         .attr('y1', function (d) { return this._y })
         .attr('x2', CHART_PADDING)
@@ -406,6 +446,7 @@ class ChartFactory {
             : d
         })
         .text(function (d) { return d })
+        .attr('fill', TEXT_COLOR)
         .attr('text-anchor', 'end')
         .attr('x', CHART_PADDING - 6)
         .attr('y', function (y) { return this._y + 3 })
@@ -546,6 +587,8 @@ class ChartFactory {
         })
 
       this.circles = this.node.append('circle')
+        .attr('stroke', '#009688')
+        .attr('stroke-width', '1px')
         .attr('r', this.nodeSize)
         .attr('fill', function (p) {
           if (self.featureImage) {
@@ -584,12 +627,13 @@ class ChartFactory {
         .value(function (d) { return self.occurrences[d] })
 
       this.pieChart = this.svg.append('g')
-        .attr('class', 'pieChart')
+        .attr('font-size', '13px')
         .attr('transform', 'translate(' + this.width / 2 + ',' + this.height / 2 + ')')
 
       this.path = self.pieChart.datum(this.values).selectAll('.arc')
         .data(self.pie)
         .enter().append('path')
+        .attr('stroke', 'white')
         .style('fill', function (d) { return self.valueToColor(d.data) })
         .each(function (d) {
           this._current = d
@@ -679,7 +723,7 @@ class ChartFactory {
           this._x = self.barMargin
            ? i * self.barWidth + CHART_PADDING + i + 1
            : i * self.barWidth + CHART_PADDING
-        }).attr('class', 'bar')
+        }).attr('fill', '#009688')
         .attr('x', function () { return this._x })
         .attr('width', this.barWidth)
         .attr('y', this.chartHeight - 1 + CHART_PADDING)
@@ -732,11 +776,12 @@ class ChartFactory {
               }
             }
 
-            this._class = fitHeight
-              ? 'textWhite'
-              : ''
+            this._textColor = fitHeight
+              ? 'white'
+              : TEXT_COLOR
           })
           .text(function (d) { return this._text })
+          .attr('fill', function () { return this._textColor })
           .attr('text-anchor', function (d) { return this._textAnchor })
           .attr('transform', function (d) {
             return this._rotate
@@ -985,11 +1030,12 @@ class ChartFactory {
                 }
               }
 
-              this._class = fitHeight
-                ? 'textWhite'
-                : ''
+              this._textColor = fitHeight
+                ? 'white'
+                : TEXT_COLOR
             })
             .text(function (d) { return this._text })
+            .attr('fill', function () { return this._textColor })
             .attr('text-anchor', function (d) { return this._textAnchor })
             .attr('transform', function (d) {
               return this._rotate
@@ -999,7 +1045,6 @@ class ChartFactory {
             .attr('x', function (d) { return this._x })
             .attr('y', function (d) { return this._y })
             .attr('font-size', '10px')
-            .attr('class', function (d) { return this._class || '' })
             .attr('opacity', '0')
 
           this.text.transition().duration(TRANSITION_DURATION)
