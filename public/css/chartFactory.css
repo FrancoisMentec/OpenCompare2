@@ -50,6 +50,11 @@
   height: 48px;
   line-height: 48px;
   padding: 0 5px 0 5px;
+  overflow: auto;
+}
+
+#chartOptions select {
+  max-width: 300px;
 }
 
 #chartContent {

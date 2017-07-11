@@ -83,8 +83,8 @@ class ChartFactory {
         background.setAttribute('fill', 'white')
         svg.insertBefore(background, svg.firstChild)
         svg.setAttribute('style', 'font-family: Roboto-Regular, Roboto, Arial')
-        var b64 = btoa(svg.outerHTML)
-        self.downloadButton.setAttribute('href', 'data:image/svg+xml;base64,\n' + b64)
+        var b64 = Base64.encode(svg.outerHTML)
+        self.downloadButton.setAttribute('href', 'data:image/svg+xml;charset=utf-8;base64,\n' + b64)
       } else {
         e.stopPropagation()
         e.preventDefault()

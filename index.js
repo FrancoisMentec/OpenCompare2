@@ -57,6 +57,10 @@ io.on('connection', function (socket) {
 })
 
 // Routing
+app.get('/base64.js', function (req, res) {
+	res.sendFile(__dirname + '/node_modules/js-base64/base64.js')
+})
+
 app.get('/', function (req, res) {
 	res.render('index', {test: 'hello'})
 })
