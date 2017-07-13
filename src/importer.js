@@ -132,6 +132,11 @@ function importFromCSV (src, callback) {
 function elementToValue (el, src) {
   var value = el.textContent.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ')
 
+  var href
+  if (el.children.length === 1 && (href = el.firstChild.getAttribute('href')) && href.length > 0) {
+    value = href //TODO: resolve relative url
+  }
+
   if (value.length == 0) {
     if ((img = el.getElementsByTagName('img')).length > 0) value = img[0].getAttribute('src')
     else if ((a = el.getElementsByTagName('a')).length > 0) value = a[0].getAttribute('href').startsWith('/')
