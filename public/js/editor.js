@@ -469,6 +469,7 @@ class Editor {
     })
     chips.appendChild(chipsDelete)
     this.cellEditInputWrap.insertBefore(chips, this.cellEditInput)
+    this.cellEditInputWrap.scrollLeft = this.cellEditInputWrap.offsetWidth
   }
 
   removeAllEditChips () {
