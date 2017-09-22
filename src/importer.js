@@ -133,7 +133,7 @@ function elementToValue (el, src) {
   var value = el.textContent.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ')
 
   var href
-  if (el.children.length === 1 && (href = el.firstChild.getAttribute('href')) && href.length > 0) {
+  if (el.children.length === 1 && (href = el.firstElementChild.getAttribute('href')) && href.length > 0) {
     value = href //TODO: resolve relative url
   }
 
